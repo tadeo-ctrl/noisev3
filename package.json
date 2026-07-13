@@ -1,0 +1,12 @@
+{
+  "private": true,
+  "scripts": {
+    "check": "npm run check:basic && npm run check:mobile",
+    "check:basic": "node scripts/basic-regression.mjs",
+    "check:mobile": "node scripts/mobile-carousel-smoke.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.1",
+    "playwright-core": "^1.61.1"
+  }
+}

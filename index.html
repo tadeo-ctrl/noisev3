@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="apple-mobile-web-app-title" content="NOISE">
+<title>NOISE — App</title>
+<link rel="icon" href="media/img/noise-logomark-white.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/app.css">
+</head>
+<body>
+<div class="appwrap">
+  <div class="phone" id="phone">
+
+    <div class="screen-host">
+      <!-- FEED -->
+      <section class="screen active" id="s-feed" aria-label="Feed">
+        <div class="ptr" id="feed-ptr"><span class="ptr-spin"></span></div>
+        <div class="feed" id="feed"></div>
+        <div class="galaxy" id="galaxy" aria-hidden="true" aria-label="Explore all trends"><div class="gx-layer" id="gx-layer"></div></div>
+        <!-- Header: N logomark top-left (tap to zoom out), ＋ top-right. Notifications live on the
+             profile screen, next to the menu icon — not here. -->
+        <button class="feedmenu" id="feed-menu" aria-label="NOISE — zoom out to browse all trends"><img src="media/img/noise-logomark-white.svg" alt="NOISE" width="35" height="29" draggable="false"></button>
+        <div class="feedtopr">
+          <button class="feedbell" id="feed-create" aria-label="Create"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+        </div>
+      </section>
+
+      <!-- DETAIL -->
+      <section class="screen" id="s-detail" aria-label="Trend">
+        <button class="backbtn" id="det-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scrollarea">
+          <div class="dhero">
+            <div class="dglow" id="d-glow" aria-hidden="true"></div>
+            <div class="dcar" id="d-car"></div>
+            <div class="dh-meta">
+              <div class="dh-toprow">
+                <div class="dheat"><span class="deg" id="d-deg">520°</span><span class="sentmini up" id="d-smini">▲ 64%</span></div>
+                <button class="dh-act dh-share" id="d-share" data-share aria-label="Share" title="Share"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v14"/></svg></button>
+              </div>
+              <div class="dh-name" id="d-name">Humanoid Robots</div>
+              <p class="d-desc" id="d-desc"></p>
+              <div class="dh-user">
+                <span id="d-user" data-user role="button">@eloquent</span>
+                <div class="dh-actions">
+                  <button class="dh-act" id="d-save" data-fav aria-label="Save to Favorites" title="Save"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.5h11A1.5 1.5 0 0 1 19 5v16l-7-4.4L5 21V5a1.5 1.5 0 0 1 1.5-1.5z"/></svg></button>
+                </div>
+              </div>
+              <div class="dh-social" id="d-social"></div>
+            </div>
+          </div>
+          <div class="pro-detail" id="d-pro"></div>
+          <div class="dbody">
+            <div class="tsec" id="sec-posts">
+              <div class="tsec-h dp-head"><span>Conversations</span><button class="dp-all" id="dp-all">See all</button></div>
+              <div id="d-posts"></div>
+              <button class="dp-compose" id="dp-compose">Join the conversation</button>
+            </div>
+            <div class="tsec" id="sec-moves">
+              <div class="tsec-h">Timeline</div>
+              <div id="d-signals" class="sig-list"></div>
+              <button class="sig-more" id="d-sigmore">All <span>→</span></button>
+            </div>
+            <div class="tsec" id="sec-colls">
+              <div class="tsec-h">Collections</div>
+              <div id="d-colls" class="cs-scroll"></div>
+            </div>
+            <div class="tsec" id="sec-subs">
+              <div id="d-relfeed"></div>
+            </div>
+          </div>
+        </div>
+        <div class="forecast-bar">
+          <button class="fb-btn" data-forecast aria-label="Signal"><span class="fb-label">Signal</span><svg class="fb-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
+        </div>
+      </section>
+
+      <!-- FORECASTS -->
+      <section class="screen" id="s-forecasts" aria-label="Signals">
+        <div class="bgglow"></div>
+        <button class="backbtn" id="fc-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scrollarea">
+          <div class="shead"><h1>Credits &amp; wallet</h1><p>Balance, signals and history.</p></div>
+          <div class="wallet glass">
+            <div class="wallet-top">
+              <div><div class="wallet-cap">Balance</div><div class="wallet-bal"><span id="fc-bal">500</span> <span class="wallet-dot">◇</span></div></div>
+              <button class="wallet-add" id="fc-add"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add credits</button>
+            </div>
+            <div class="wallet-stats">
+              <div class="ws"><div class="ws-k">At stake</div><div class="ws-v" id="fc-stake">0</div></div>
+              <div class="ws"><div class="ws-k">Net P&amp;L</div><div class="ws-v" id="fc-pl">+0</div></div>
+              <div class="ws"><div class="ws-k">Record</div><div class="ws-v" id="fc-rec">0–0</div></div>
+            </div>
+          </div>
+          <div class="fc-tabs" id="fc-tabs">
+            <button class="fc-tab" data-fctab="open" aria-current="true">Open</button>
+            <button class="fc-tab" data-fctab="history" aria-current="false">History</button>
+          </div>
+          <div id="fc-open"></div>
+          <div id="fc-history" hidden></div>
+        </div>
+      </section>
+
+      <!-- TASTE -->
+      <section class="screen" id="s-taste" aria-label="Taste">
+        <div class="bgglow"></div>
+        <div class="scrollarea">
+          <div class="shead"><h1>Taste</h1><p>Your standing, earned by spotting and hyping culture — not by profit.</p><button class="set-gear" id="open-settings" aria-label="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1M18.7 18.7l-2.1-2.1M7.4 7.4L5.3 5.3"/></svg></button></div>
+          <div class="taste-card glass"><div class="rk" id="t-rank">—</div><div class="cap2">Taste rank · early &amp; accurate</div><div class="acc" id="t-acc">Signal to start your track record.</div></div>
+          <div class="lead-h">Top curators by contribution</div>
+          <div class="lrow glass"><span class="pos">01</span><span class="who">claire.eth<small>14 trends moved · 6 collections</small></span></div>
+          <div class="lrow glass"><span class="pos">02</span><span class="who">tomi<small>11 trends moved · 4 collections</small></span></div>
+          <div class="lrow you glass"><span class="pos" id="t-pos">—</span><span class="who">you<small id="t-sub">unranked</small></span></div>
+        </div>
+      </section>
+
+      <!-- EXPLORE -->
+      <section class="screen" id="s-explore" aria-label="Search">
+        <div class="bgglow"></div>
+        <div class="scrollarea">
+          <div class="searchbar">
+            <svg class="search-ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+            <input id="ex-search" type="text" autocomplete="off" placeholder="Search trends or curators…">
+          </div>
+          <div class="exfilters" id="ex-filters" aria-label="Filters">
+            <button class="exf" data-filtersheet="when"><span id="exf-when-lbl">Today</span><svg class="exf-car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+            <button class="exf" data-filtersheet="sort"><span id="exf-sort-lbl">Trending</span><svg class="exf-car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+            <button class="exf" data-filtersheet="loc"><span id="exf-loc-lbl">US</span><svg class="exf-car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+          </div>
+          <div id="ex-list" class="trendlist"></div>
+          <div id="ex-empty" class="ex-empty" style="display:none;">No trends match that search.</div>
+        </div>
+      </section>
+
+      <!-- PROFILE (Cosmos-style) -->
+      <section class="screen" id="s-profile" aria-label="Profile">
+        <div class="pfbar" id="pfbar" aria-hidden="true">
+          <div class="pfbar-pill" id="pfbar-pill">
+            <span class="pfbar-chip" id="pfbar-chip" role="button" aria-label="Back to top"><span class="pfbar-av" id="pfbar-av"></span><span class="pfbar-name" id="pfbar-name">@tadeov01</span></span>
+            <span class="pfbar-edit" id="pfbar-edit" role="button">Edit</span>
+          </div>
+          <!-- Same pairing as the expanded header: bell, then menu. -->
+          <button class="cprof-icon pfbar-gear" id="pfbar-notif" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="bell-dot"></span></button>
+          <button class="cprof-icon pfbar-gear" id="pfbar-gear" aria-label="Settings"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+        </div>
+        <button class="backbtn" id="prof-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scrollarea">
+          <div class="cprof-head">
+            <span class="cprof-av" id="pf-av"></span>
+            <div class="cprof-id">
+              <div class="cprof-name" id="pf-name">Tadeo</div>
+              <div class="cprof-handle" id="pf-handle">@tadeov01</div>
+            </div>
+            <div class="cprof-headr" id="pf-headr">
+              <button class="cprof-icon" id="prof-notif" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="bell-dot"></span></button>
+              <button class="cprof-icon" id="prof-gear" aria-label="Settings"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+            </div>
+          </div>
+          <div class="cprof-follow">
+            <span class="cprof-fitem tap" data-followlist="followers"><b id="pf-foll">1</b> followers</span>
+            <span class="cprof-dot">·</span>
+            <span class="cprof-fitem tap" data-followlist="following"><b id="pf-following">1</b> following</span>
+          </div>
+          <div class="cprof-actions" id="pf-actions">
+            <button class="cprof-add" id="pf-add">Add</button>
+            <button class="cprof-edit" id="pf-edit">Edit profile</button>
+          </div>
+          <div class="cprof-tabs" id="pf-tabs">
+            <button class="cprof-tab" data-pftab="curations" data-pftab-sec="pf-sec-curations" aria-current="true">Curations <span class="cprof-tn" id="pf-tn-cu">0</span></button>
+            <button class="cprof-tab" data-pftab="colls" data-pftab-sec="pf-sec-colls" aria-current="false">Collections <span class="cprof-tn" id="pf-tn-c">0</span></button>
+            <button class="cprof-tab" data-pftab="signals" data-pftab-sec="pf-sec-signals" aria-current="false">Signals <span class="cprof-tn" id="pf-tn-s">0</span></button>
+            <button class="cprof-tab" data-pftab="posts" data-pftab-sec="pf-sec-posts" aria-current="false">Posts <span class="cprof-tn" id="pf-tn-p">0</span></button>
+          </div>
+          <div class="cprof-pane" id="pf-sec-curations"><div class="cprof-grid" id="pf-curations"></div></div>
+          <div class="cprof-pane" id="pf-sec-signals" hidden><div class="cprof-grid" id="pf-signals"></div></div>
+          <div class="cprof-pane" id="pf-sec-colls" hidden><div class="cprof-grid" id="pf-colls"></div></div>
+          <div class="cprof-pane" id="pf-sec-posts" hidden><div class="cprof-grid" id="pf-uposts"></div></div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="screen" id="s-settings" aria-label="Settings">
+        <div class="bgglow"></div>
+        <button class="backbtn" id="set-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scrollarea">
+          <div class="shead"><h1>Settings</h1></div>
+          <div class="setlist">
+            <div class="setrow link" data-open-acct="credits"><span class="set-t">Credits &amp; wallet</span><span class="cs-go">›</span></div>
+            <div class="setrow link" data-open-acct="favorites"><span class="set-t">Favorites</span><span class="cs-go">›</span></div>
+            <div class="setrow link" data-open-acct="invite"><span class="set-t">Invite friends</span><span class="cs-go">›</span></div>
+          </div>
+          <div class="setlist">
+            <div class="setrow"><div class="set-id"><div class="set-t">Notifications</div><div class="set-d">Resolved calls, curators you follow, big moves.</div></div><button class="switch" id="set-notif" aria-pressed="true"><span></span></button></div>
+            <div class="setrow"><div class="set-id"><div class="set-t">Reduce motion</div><div class="set-d">Minimize animations across the app.</div></div><button class="switch" id="set-motion" aria-pressed="false"><span></span></button></div>
+          </div>
+          <div class="setlist">
+            <div class="setrow link" data-open-acct="security"><span class="set-t">Security &amp; account</span><span class="cs-go">›</span></div>
+            <div class="setrow link" data-open-acct="help"><span class="set-t">Help &amp; support</span><span class="cs-go">›</span></div>
+          </div>
+          <div class="setlist">
+            <div class="setrow link" data-logout><span class="set-t">Log out</span><span class="cs-go">›</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLLECTION -->
+      <section class="screen" id="s-collection" aria-label="Collection">
+        <div class="coll-grid-wrap" id="coll-grid-wrap"><div class="coll-grid" id="coll-grid"></div></div>
+        <div class="coll-top">
+          <button class="backbtn" id="coll-back" aria-label="Back" style="position:static;"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <div class="coll-head"><div class="coll-title2" id="coll-title">Collection</div><div class="coll-sub" id="coll-sub"></div></div>
+          <span class="coll-deg" id="coll-deg">—°</span>
+        </div>
+        <!-- One bottom action pill — same glass, height and position as the main tab bar, so
+             the tab bar reads as morphing into it when you push into a collection. -->
+        <div class="coll-actions" id="coll-actions">
+          <!-- Left slot: Save (collections you don't own) OR Edit (your own) — mutually exclusive, so
+               Signal always stays centered between the left slot and Share. -->
+          <button class="ca-btn" id="coll-save" aria-label="Save collection" title="Save"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.5h11A1.5 1.5 0 0 1 19 5v16l-7-4.4L5 21V5a1.5 1.5 0 0 1 1.5-1.5z"/></svg></button>
+          <button class="ca-btn" id="coll-edit" aria-label="Edit collection" title="Edit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10.5-10.5a2 2 0 0 0-2.83-2.83L5 17.5z"/><path d="M13.5 6.5l4 4"/></svg></button>
+          <button class="ca-btn ca-signal" id="coll-signal" aria-label="Signal collection">Signal</button>
+          <button class="ca-btn" id="coll-share" aria-label="Share collection" title="Share"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v14"/></svg></button>
+        </div>
+      </section>
+
+      <!-- NEW LIST (user, untradable) -->
+      <section class="screen" id="s-newlist" aria-label="New collection">
+        <div class="bgglow"></div>
+        <button class="backbtn" id="nl-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scrollarea" id="nl-scroll">
+          <h1 class="nl-h" id="nl-title">New collection</h1>
+          <div class="nl-stack" id="nl-stack"></div>
+          <div class="nl-head">
+            <input class="nl-name" id="nl-name" type="text" placeholder="Collection name" maxlength="40" aria-label="Collection name">
+            <button class="nl-searchtoggle" id="nl-searchtoggle" aria-label="Search trends"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg></button>
+          </div>
+          <div class="nl-privacy" id="nl-visrow">
+            <div class="nl-priv-id"><div class="nl-priv-t">Make private</div><div class="nl-priv-d">Only you can see it. Public collections are tradable on NOISE.</div></div>
+            <button class="switch" id="nl-private" aria-pressed="false" aria-label="Make private"><span></span></button>
+          </div>
+          <div class="nl-selhead" id="nl-selhead">No trends yet</div>
+          <div class="nl-chips" id="nl-chips"></div>
+          <div class="nl-searchwrap" id="nl-searchwrap" hidden><svg class="nl-searchic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg><input class="nl-search" id="nl-search" type="text" placeholder="Search trends to add" aria-label="Search trends"></div>
+          <div class="nl-picker" id="nl-picker"></div>
+          <button class="nl-delete" id="nl-delete" hidden>Delete collection</button>
+        </div>
+        <div class="nl-bar"><button class="nl-create" id="nl-create" data-disabled="1">Create collection</button></div>
+      </section>
+
+      <!-- CREATE A TREND (curator) -->
+      <section class="screen" id="s-createtrend" aria-label="Create a trend">
+        <div class="bgglow"></div>
+        <button class="backbtn" id="ct-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scrollarea" id="ct-scroll">
+          <!-- Step 1 — ideate (nothing loads until Continue) -->
+          <div class="ct-step" id="ct-step1">
+            <div class="ct-eyebrow">New trend</div>
+            <h1 class="ct-h">What's on your mind?</h1>
+            <p class="ct-sub">Describe the shift you're seeing. We'll check if it already exists, then confirm the topic.</p>
+            <textarea id="ct-think" class="ct-think" rows="3" placeholder="e.g. AI agents starting to replace SaaS tools…" aria-label="What's on your mind"></textarea>
+            <div class="ct-bar"><button class="ct-cta" id="ct-next" data-disabled="1">Continue</button></div>
+          </div>
+          <!-- Already taken -->
+          <div class="ct-step" id="ct-taken" hidden>
+            <div class="ct-eyebrow warn">Already on NOISE</div>
+            <h1 class="ct-h">This trend already exists</h1>
+            <p class="ct-sub">Someone already created this. Open it, or go back and try a different angle.</p>
+            <div id="ct-taken-card"></div>
+            <div class="ct-bar"><button class="ct-cta ghost" id="ct-taken-back">Try another name</button></div>
+          </div>
+          <!-- Confirm the topic (simulated web search) -->
+          <div class="ct-step" id="ct-confirm" hidden>
+            <div class="ct-eyebrow">Confirm the topic</div>
+            <h1 class="ct-h">Is this what you mean?</h1>
+            <p class="ct-sub">We searched the web for the closest topics to what you wrote.</p>
+            <div id="ct-search"></div>
+            <button class="ct-rewrite" id="ct-rewrite">Not what you were thinking? <span>Rewrite</span></button>
+          </div>
+          <!-- Step 2 — add content (upload, needs at least one) -->
+          <div class="ct-step" id="ct-step2" hidden>
+            <div class="ct-eyebrow">New trend</div>
+            <h1 class="ct-h">Add content</h1>
+            <p class="ct-sub">A trend launches on strong content. Give it a clear name and add at least one picture.</p>
+            <input id="ct-title" class="ct-title" type="text" maxlength="48" placeholder="Trend name" aria-label="Trend name">
+            <div class="ct-label">Content <span class="ct-req" id="ct-piccount">Add at least 1</span></div>
+            <input type="file" id="ct-file" accept="image/*,video/*" multiple hidden>
+            <button class="ct-upload" id="ct-upload-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg><span>Add photo or video</span><small>At least one, high quality</small></button>
+            <div class="ct-uploads" id="ct-uploads"></div>
+            <textarea id="ct-desc" class="ct-desc" rows="2" placeholder="What's moving it? (optional)" aria-label="Description"></textarea>
+            <div class="ct-bar"><button class="ct-cta" id="ct-publish" data-disabled="1">Submit for review</button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- REVIEW TRENDS (curator) — Tinder-style promote/discard deck -->
+      <section class="screen" id="s-review" aria-label="Review trends">
+        <div class="bgglow"></div>
+        <button class="backbtn" id="rv-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="rv-top"><div class="rv-h">Review trends</div><div class="rv-sub" id="rv-sub">Promote or discard new trends</div><button class="rv-mine" id="rv-mine">Your trends in review <span>›</span></button></div>
+        <div class="rv-deck" id="rv-deck"></div>
+        <div class="rv-actions" id="rv-actions">
+          <div class="rv-pill">
+            <button class="rv-abtn discard" id="rv-discard" aria-label="Discard"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+            <span class="rv-sep"></span>
+            <button class="rv-abtn promote" id="rv-promote" aria-label="Promote"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- IN REVIEW (curator) — your own submissions climbing toward launch -->
+      <section class="screen" id="s-pending" aria-label="Trends in review">
+        <div class="bgglow"></div>
+        <button class="backbtn" id="pend-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scrollarea">
+          <div class="shead"><h1>In Review</h1><p>Your trends climbing toward launch.</p></div>
+          <div id="pend-list" class="pend-list"></div>
+          <div id="pend-empty" class="ex-empty" style="display:none;">You haven't submitted any trends yet. Tap ＋ to create one.</div>
+        </div>
+      </section>
+
+      <!-- SIGNAL DETAIL (a single forecast/position, trader view) -->
+      <section class="screen" id="s-signaldetail" aria-label="Signal detail">
+        <div class="bgglow"></div>
+        <button class="backbtn" id="sig-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scrollarea" id="sig-scroll">
+          <div id="sig-content"></div>
+        </div>
+      </section>
+
+      <!-- FULL-SCREEN CHART -->
+      <section class="screen" id="s-chart" aria-label="Chart">
+        <div class="bgglow"></div>
+        <button class="backbtn" id="chart-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="chart-fixed">
+          <div class="chart-screen-head"><div class="csh-nm" id="chart-nm">Trend</div><div class="csh-deg" id="chart-deg">—°</div></div>
+          <div id="chart-host"></div>
+        </div>
+        <div class="chart-tl-scroll" id="chart-scroll"><div id="chart-tl"></div></div>
+      </section>
+
+      <!-- TIMELINE -->
+      <section class="screen" id="s-timeline" aria-label="Timeline">
+        <div class="bgglow"></div>
+        <button class="backbtn" id="tl-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scrollarea">
+          <div class="shead"><h1>Timeline</h1><p id="tl-name">Humanoid Robots</p></div>
+          <div id="tl-list" class="sig-list"></div>
+        </div>
+      </section>
+
+      <!-- ARTICLE READER -->
+      <section class="screen" id="s-article" aria-label="Article">
+        <div class="bgglow"></div>
+        <button class="backbtn" id="art-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scrollarea">
+          <div class="art-source" id="art-src">Source · time</div>
+          <h1 class="art-title" id="art-title">Headline</h1>
+          <span class="art-move up" id="art-move">+14°</span>
+          <div class="art-body" id="art-body"></div>
+        </div>
+      </section>
+
+      <!-- POSTS -->
+      <section class="screen" id="s-posts" aria-label="Posts">
+        <div class="bgglow"></div>
+        <div class="scrollarea" id="posts-scroll">
+          <div class="ptr" id="posts-ptr"><span class="ptr-spin"></span></div>
+          <div class="searchbar">
+            <svg class="search-ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+            <input id="posts-search" type="text" autocomplete="off" placeholder="Search posts…">
+          </div>
+          <div class="posts-filterbar">
+            <div class="exfilters posts-filters">
+              <button class="exf" id="posts-sort" data-postsheet="sort"><span id="posts-sort-lbl">Best</span><svg class="exf-car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+              <button class="exf" data-postsheet="when"><span id="posts-when-lbl">Today</span><svg class="exf-car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+            </div>
+            <button class="post-add-round" id="post-fab" aria-label="New post"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+          <div id="posts-list" class="posts-list"></div>
+          <div id="posts-empty" class="ex-empty" style="display:none;">No posts match that search.</div>
+        </div>
+      </section>
+
+      <!-- TREND CONVERSATIONS (per-trend, no search — timeframe only) -->
+      <section class="screen" id="s-trendconvo" aria-label="Conversations">
+        <div class="bgglow"></div>
+        <button class="backbtn" id="tc-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scrollarea" id="tc-scroll">
+          <div class="ptr" id="tc-ptr"><span class="ptr-spin"></span></div>
+          <div class="shead"><h1>Conversations</h1><p id="tc-name">Trend</p></div>
+          <div class="posts-filterbar">
+            <div class="exfilters posts-filters">
+              <button class="exf" data-tcsheet="sort"><span id="tc-sort-lbl">Hot</span><svg class="exf-car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+              <button class="exf" data-tcsheet="when"><span id="tc-when-lbl">Today</span><svg class="exf-car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+            </div>
+            <button class="post-add-round" id="tc-fab" aria-label="New post"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+          <div id="tc-list" class="posts-list"></div>
+          <div id="tc-empty" class="ex-empty" style="display:none;">No conversations yet. Be the first to post.</div>
+        </div>
+      </section>
+
+      <!-- SAVED -->
+      <section class="screen" id="s-saved" aria-label="Saved">
+        <div class="bgglow"></div>
+        <button class="backbtn" id="saved-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scrollarea">
+          <div class="shead"><h1>Favorites</h1><p>Trends and collections you saved.</p></div>
+          <div class="cprof-tabs" id="fav-tabs">
+            <button class="cprof-tab" data-favtab="trends" aria-current="true">Trends</button>
+            <button class="cprof-tab" data-favtab="colls" aria-current="false">Collections</button>
+          </div>
+          <div id="saved-list" class="cprof-grid"></div>
+        </div>
+      </section>
+
+      <!-- STUB / COMING SOON -->
+      <section class="screen" id="s-stub" aria-label="Coming soon">
+        <div class="bgglow"></div>
+        <button class="backbtn" id="stub-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scrollarea stub-area">
+          <div class="stub-box"><div class="stub-t" id="stub-title">Coming soon</div><div class="stub-d">This part of the demo isn't built out yet.</div></div>
+        </div>
+      </section>
+
+      <!-- USER LIST (followers / following) -->
+      <section class="screen" id="s-userlist" aria-label="People">
+        <div class="bgglow"></div>
+        <button class="backbtn" id="ul-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scrollarea">
+          <div class="shead"><h1 id="ul-title">@you</h1></div>
+          <div class="ultabs"><button class="ultab on" data-ultab="followers">Followers</button><button class="ultab" data-ultab="following">Following</button></div>
+          <div id="ul-list" class="ullist"></div>
+        </div>
+      </section>
+
+      <!-- POST DETAIL -->
+      <section class="screen" id="s-postdetail" aria-label="Post">
+        <div class="bgglow"></div>
+        <button class="backbtn" id="pd-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scrollarea">
+          <div id="pd-content"></div>
+        </div>
+        <div class="replywrap">
+          <div class="reply-ctx" id="pd-ctx">Replying to <b id="pd-ctx-u">@x</b><span class="rx" id="pd-ctx-x">✕</span></div>
+          <div class="replybar"><input id="pd-reply" type="text" placeholder="Add a comment…"><button id="pd-send">Reply</button></div>
+        </div>
+      </section>
+
+      <!-- NOTIFICATIONS -->
+      <section class="screen" id="s-notif" aria-label="Notifications">
+        <div class="bgglow"></div>
+        <button class="backbtn" id="notif-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scrollarea">
+          <div class="shead"><h1>Notifications</h1></div>
+          <div id="notif-list" class="notif-list"></div>
+        </div>
+      </section>
+
+      <!-- EDIT PROFILE -->
+      <section class="screen" id="s-editprofile" aria-label="Edit profile">
+        <div class="bgglow"></div>
+        <button class="backbtn" id="edit-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scrollarea">
+          <div class="shead"><h1>Edit profile</h1></div>
+          <div class="edit-avrow"><span class="prof-av" id="edit-av"></span><div class="edit-sw" id="edit-sw"></div></div>
+          <div class="edit-field"><div class="edit-lbl">Name</div><input id="edit-name" class="edit-input" type="text" maxlength="24"></div>
+          <div class="edit-field"><div class="edit-lbl">Bio</div><textarea id="edit-bio" class="edit-input edit-area" maxlength="120" rows="3"></textarea></div>
+          <button class="cta-place" id="edit-save">Save</button>
+        </div>
+      </section>
+
+      <!-- SECURITY & ACCOUNT -->
+      <section class="screen" id="s-security" aria-label="Security and account">
+        <div class="bgglow"></div>
+        <button class="backbtn" id="sec-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scrollarea">
+          <div class="shead"><h1>Security &amp; account</h1></div>
+          <div class="setlist">
+            <div class="setrow"><div class="set-id"><div class="set-t">Email</div><div class="set-d">tadeo@villanuevak.com</div></div><span class="cs-go" data-toast="Verification sent">Verify ›</span></div>
+            <div class="setrow link" data-toast="Password reset link sent"><span class="set-t">Change password</span><span class="cs-go">›</span></div>
+            <div class="setrow"><div class="set-id"><div class="set-t">Two-factor authentication</div><div class="set-d">Extra security at login.</div></div><button class="switch" id="sec-2fa" aria-pressed="false"><span></span></button></div>
+            <div class="setrow"><div class="set-id"><div class="set-t">Login alerts</div><div class="set-d">Notify me about new sign-ins.</div></div><button class="switch" id="sec-alerts" aria-pressed="true"><span></span></button></div>
+          </div>
+          <div class="setlist">
+            <div class="setrow"><div class="set-id"><div class="set-t">Active sessions</div><div class="set-d">This iPhone · active now</div></div></div>
+            <div class="setrow link danger" data-toast="Account deletion is disabled in the demo"><span class="set-t">Delete account</span><span class="cs-go">›</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- HELP & SUPPORT -->
+      <section class="screen" id="s-help" aria-label="Help and support">
+        <div class="bgglow"></div>
+        <button class="backbtn" id="help-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scrollarea">
+          <div class="shead"><h1>Help &amp; support</h1></div>
+          <div id="faq-list" class="faq-list"></div>
+          <div class="setlist">
+            <div class="setrow link" data-toast="Opening support…"><span class="set-t">Contact support</span><span class="cs-go">›</span></div>
+            <div class="setrow link" data-toast="Opening community…"><span class="set-t">Community guidelines</span><span class="cs-go">›</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- INVITE FRIENDS -->
+      <section class="screen" id="s-invite" aria-label="Invite friends">
+        <div class="bgglow"></div>
+        <button class="backbtn" id="inv-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="scrollarea">
+          <div class="shead"><h1>Invite friends</h1></div>
+          <div class="inv-hero">
+            <div class="inv-reward">+250</div>
+            <div class="inv-rtext">Earn <b>250 credits</b> for every friend who joins. They get <b>250</b> too.</div>
+          </div>
+          <div class="inv-linkrow"><span class="inv-link" id="inv-link">noise.xyz/i/you-x8k2</span><button class="inv-copy" id="inv-copy">Copy</button></div>
+          <button class="cta-place" id="inv-share">Share invite</button>
+          <div class="inv-stat"><b>3 friends</b> joined · <b>750 credits</b> earned</div>
+        </div>
+      </section>
+    </div>
+    <!-- lightbox -->
+    <div class="lightbox" id="lightbox"><button class="lb-close" id="lb-close" aria-label="Close">✕</button><div class="lb-img" id="lb-img"></div><div class="lb-cap" id="lb-cap"></div></div>
+    <div class="toast" id="toast"></div>
+
+    <!-- forecast sheet -->
+    <div class="scrim" id="scrim"></div>
+    <div class="sheet glass" id="sheet" role="dialog" aria-modal="true" aria-label="Signal">
+      <div class="grab"></div>
+      <div class="sheet-h">Signal <span id="sheet-name">Humanoid Robots</span></div>
+      <div class="balrow"><span>Balance <b id="sheet-bal">500</b> credits</span><button class="baladd" id="sheet-add">+ Add</button></div>
+      <div class="dirseg">
+        <button class="diropt rise active" data-dir="rise"><b>▲ Rise</b><small id="m-rise">64% backing</small></button>
+        <button class="diropt cool" data-dir="cool"><b>▼ Cool</b><small id="m-cool">36% backing</small></button>
+      </div>
+      <div id="levwrap" style="display:none;">
+        <div class="seg-h">Leverage</div>
+        <div class="chips" id="lev">
+          <button class="chip" data-l="1" aria-pressed="true">1×</button>
+          <button class="chip" data-l="2" aria-pressed="false">2×</button>
+          <button class="chip" data-l="5" aria-pressed="false">5×</button>
+          <button class="chip" data-l="10" aria-pressed="false">10×</button>
+        </div>
+        <div class="seg-h tpsl-h">Take profit / Stop loss<button class="switch sm" id="tpsl-on" aria-pressed="false"><span></span></button></div>
+        <div id="tpsl-fields" class="tpsl-fields" style="display:none;">
+          <div class="tpsl-field">
+            <input id="tp" class="amtinput" type="number" inputmode="numeric" placeholder="Take profit at  °">
+            <div class="tpsl-out muted" id="tp-out">Win —</div>
+          </div>
+          <div class="tpsl-field">
+            <input id="sl" class="amtinput" type="number" inputmode="numeric" placeholder="Stop loss at  °">
+            <div class="tpsl-out muted" id="sl-out">Loss —</div>
+          </div>
+        </div>
+      </div>
+      <div class="amt-row">
+        <span class="amt-label">Amount</span>
+        <span class="amt-field"><input id="amt" class="amt-big" type="number" inputmode="numeric" min="0" placeholder="0"></span>
+      </div>
+      <div class="amt-adds" id="stake">
+        <button class="amt-add" data-add="50">+50</button>
+        <button class="amt-add" data-add="100">+100</button>
+        <button class="amt-add" data-add="250">+250</button>
+        <button class="amt-add" data-add="500">+500</button>
+      </div>
+      <div class="winline">
+        <div class="wl-win"><span class="wl-k">To win</span><span class="wl-v" id="out">0</span></div>
+        <div class="wl-cond">if it <span id="out-cond">reaches 216°</span></div>
+      </div>
+      <div class="ord-sum" id="ord-sum">
+        <div><label>Entry</label><b id="os-entry">—</b></div>
+        <div><label>Liq.</label><b id="os-liq">—</b></div>
+        <div><label>Size</label><b id="os-cost">0</b></div>
+        <div><label>Est. payout</label><b id="os-pay">0</b></div>
+      </div>
+      <button class="cta-place" id="place" data-mode="place">Signal</button>
+    </div>
+    <div class="sheet glass" id="addsheet" role="dialog" aria-modal="true" aria-label="Add credits">
+      <div class="grab"></div>
+      <div class="add-top">
+        <span class="add-cap">Balance</span>
+        <span class="add-bal"><span data-bal>500</span> <span class="add-dot">◇</span></span>
+      </div>
+      <div class="chips" id="addamt">
+        <button class="chip" data-a="5000" aria-pressed="true">5,000</button>
+        <button class="chip" data-a="10000" aria-pressed="false">10,000</button>
+        <button class="chip" data-a="30000" aria-pressed="false">30,000</button>
+        <button class="chip" data-a="65000" aria-pressed="false">65,000</button>
+      </div>
+      <div class="add-custom">
+        <input id="addamt-custom" type="number" inputmode="numeric" min="1" placeholder="Custom amount">
+        <span class="add-dot">◇</span>
+      </div>
+      <button class="cta-place" id="addconfirm">Add 5,000 ◇</button>
+    </div>
+
+    <!-- resolve signal sheet -->
+    <div class="sheet glass" id="ressheet" role="dialog" aria-modal="true" aria-label="Resolve signal">
+      <div class="grab"></div>
+      <div class="sheet-h">Resolve <span id="res-name">Trend</span></div>
+      <div class="sheet-sub">Your signal stays open until you close it. Close now, or set a price to close at.</div>
+      <div class="res-seg">
+        <button class="res-opt active" data-resmode="market"><b>At market</b><small>Close now, current degree</small></button>
+        <button class="res-opt" data-resmode="limit"><b>Limit price</b><small>Auto-close at a degree you pick</small></button>
+      </div>
+      <div class="res-pane" id="res-market">
+        <div class="res-row"><span>Current degree</span><b id="res-now">—°</b></div>
+        <div class="res-row"><span>You realize</span><b id="res-pnl">—</b></div>
+      </div>
+      <div class="res-pane" id="res-limit" style="display:none;">
+        <div class="tpsl-field">
+          <input id="res-limit-in" class="amtinput" type="number" inputmode="numeric" placeholder="Close when degree hits  °">
+          <div class="tpsl-out muted" id="res-limit-out">Order rests until the degree is reached — nothing sells before then.</div>
+        </div>
+        <button class="res-cancel" id="res-limit-clear" hidden>Remove resting limit</button>
+      </div>
+      <button class="cta-place" id="res-confirm">Close at market</button>
+    </div>
+
+    <!-- compose post sheet -->
+    <div class="sheet glass" id="cmpsheet" role="dialog" aria-modal="true" aria-label="New post">
+      <div class="grab"></div>
+      <div class="cmp-bar">
+        <button class="cmp-select" id="cmp-select"><span class="cmp-sel-sw" id="cmp-sel-sw"></span><span id="cmp-sel-label">Select trend</span><span class="cmp-chev">⌄</span></button>
+        <button class="cmp-x" id="cmp-x" aria-label="Close">✕</button>
+      </div>
+      <div class="cmp-dd" id="cmp-dd" hidden>
+        <input class="cmp-search" id="cmp-search" type="text" placeholder="Search trends">
+        <div class="cmp-dd-list" id="cmp-dd-list"></div>
+      </div>
+      <div class="cmp-compose" id="cmp-compose">
+        <input class="cmp-title" id="cmp-title" type="text" maxlength="60" placeholder="Title">
+        <textarea class="cmp-text" id="cmp-text" placeholder="Add a description…"></textarea>
+        <div class="cmp-actions">
+          <button class="cta-place cmp-post-cta" id="cmp-post" data-mode="disabled">Post</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create chooser (curator): dropdown anchored to the ＋ that opened it -->
+    <div class="ccmenu glass" id="createsheet" role="menu" aria-label="Create">
+      <div class="cc-list">
+        <button class="cc-opt" id="cc-trend">
+          <span class="cc-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 17l5.5-6.5 4 4L18 7.5"/><path d="M14 7h4.5v4.5"/></svg></span>
+          <span class="cc-tx"><b>Trend</b></span>
+        </button>
+        <button class="cc-opt" id="cc-post">
+          <span class="cc-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20l4.2-1L19.5 7.7a2.1 2.1 0 0 0-3-3L5.2 16z"/><path d="M13.5 6.5l4 4"/></svg></span>
+          <span class="cc-tx"><b>Post</b></span>
+        </button>
+        <button class="cc-opt" id="cc-review">
+          <span class="cc-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 3.5h9.5A2.5 2.5 0 0 1 20 6v11"/><rect x="4" y="7" width="12.5" height="14" rx="2.5"/><path d="M7.6 14l2.2 2.2 3.8-4.4"/></svg></span>
+          <span class="cc-tx"><b>Review</b></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- search filter sheets -->
+    <div class="sheet glass" id="fsheet-when" role="dialog" aria-modal="true" aria-label="When">
+      <div class="grab"></div>
+      <div class="sheet-h">Show</div>
+      <div class="sheet-sub">Pick the window of activity to show.</div>
+      <div class="fsheet-list" id="fwhen-list"></div>
+    </div>
+    <div class="sheet glass" id="fsheet-sort" role="dialog" aria-modal="true" aria-label="Sort">
+      <div class="grab"></div>
+      <div class="sheet-h">Sort by</div>
+      <div class="sheet-sub">Choose how results are ordered.</div>
+      <div class="fsheet-list" id="fsort-list"></div>
+    </div>
+    <div class="sheet glass" id="fsheet-loc" role="dialog" aria-modal="true" aria-label="Location">
+      <div class="grab"></div>
+      <button class="floc-back" id="floc-back" hidden><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg> Countries</button>
+      <div class="sheet-h" id="floc-h">Location</div>
+      <div class="sheet-sub" id="floc-sub">Choose a country, then a city.</div>
+      <div class="fsheet-list" id="floc-list"></div>
+    </div>
+
+    <!-- posts filter sheets -->
+    <div class="sheet glass" id="psheet-sort" role="dialog" aria-modal="true" aria-label="Sort posts">
+      <div class="grab"></div>
+      <div class="sheet-h">Sort by</div>
+      <div class="sheet-sub">Choose how posts are ordered.</div>
+      <div class="fsheet-list" id="psort-list"></div>
+    </div>
+    <div class="sheet glass" id="psheet-when" role="dialog" aria-modal="true" aria-label="When">
+      <div class="grab"></div>
+      <div class="sheet-h">Show</div>
+      <div class="sheet-sub">Pick the window of posts to show.</div>
+      <div class="fsheet-list" id="pwhen-list"></div>
+    </div>
+    <div class="sheet glass" id="tcsheet-sort" role="dialog" aria-modal="true" aria-label="Sort conversations">
+      <div class="grab"></div>
+      <div class="sheet-h">Sort by</div>
+      <div class="sheet-sub">Choose how conversations are ordered.</div>
+      <div class="fsheet-list" id="tcsort-list"></div>
+    </div>
+    <div class="sheet glass" id="tcsheet-when" role="dialog" aria-modal="true" aria-label="When">
+      <div class="grab"></div>
+      <div class="sheet-h">Show</div>
+      <div class="sheet-sub">Pick the window of conversations to show.</div>
+      <div class="fsheet-list" id="tcwhen-list"></div>
+    </div>
+    <div class="sheet glass" id="csheet-sort" role="dialog" aria-modal="true" aria-label="Sort comments">
+      <div class="grab"></div>
+      <div class="sheet-h">Sort comments</div>
+      <div class="sheet-sub">Choose how replies are ordered.</div>
+      <div class="fsheet-list" id="csort-list"></div>
+    </div>
+
+    <!-- account drawer -->
+    <div class="scrim" id="drawer-scrim"></div>
+    <aside class="drawer" id="drawer" aria-label="Account menu">
+      <div class="dr-head" data-user="@you" role="button">
+        <span class="dr-av"></span>
+        <div class="dr-id"><div class="dr-name">@you</div><div class="dr-sub">Unranked · <span class="dot">◇</span> <span data-bal>500</span> credits</div></div>
+      </div>
+      <div class="dr-list">
+        <button class="dr-row" data-user="@you"><svg class="dr-ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>Profile<span class="dr-ch">›</span></button>
+        <button class="dr-row" data-drawer-add><svg class="dr-ic" viewBox="0 0 24 24"><path d="M12 2l4 6-4 3-4-3z"/><path d="M8 13l4 9 4-9"/></svg>Credits &amp; wallet<span class="dr-ch">›</span></button>
+        <button class="dr-row" data-saved><svg class="dr-ic" viewBox="0 0 24 24"><path d="M6.5 3.5h11A1.5 1.5 0 0 1 19 5v16l-7-4.4L5 21V5a1.5 1.5 0 0 1 1.5-1.5z"/></svg>Favorites<span class="dr-ch">›</span></button>
+        <button class="dr-row" data-open="security"><svg class="dr-ic" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg>Security &amp; account<span class="dr-ch">›</span></button>
+        <button class="dr-row" data-tab="settings"><svg class="dr-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1M18.7 18.7l-2.1-2.1M7.4 7.4L5.3 5.3"/></svg>Settings<span class="dr-ch">›</span></button>
+        <button class="dr-row" data-open="invite"><svg class="dr-ic" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>Invite friends<span class="dr-ch">›</span></button>
+        <button class="dr-row" data-open="help"><svg class="dr-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1 .8-1 1.7M12 17h.01"/></svg>Help &amp; support<span class="dr-ch">›</span></button>
+      </div>
+      <button class="dr-logout" id="dr-logout">Log out</button>
+    </aside>
+
+    <!-- tab bar -->
+    <nav class="tabbar glass" aria-label="Primary">
+      <span class="tab-ind" id="tab-ind"></span>
+      <button data-tab="feed" aria-current="true"><svg class="gl" viewBox="0 0 24 24"><path d="M4 11.4c0-.5.23-.97.63-1.28l6.14-4.8a2 2 0 0 1 2.46 0l6.14 4.8c.4.31.63.78.63 1.28V19a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19z"/></svg>Home</button>
+      <button data-tab="explore" aria-current="false"><svg class="gl" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>Search</button>
+      <button data-tab="posts" aria-current="false"><svg class="gl" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.9-.9L3 20l1-4.1A8.4 8.4 0 1 1 21 11.5z"/></svg>Posts</button>
+      <button data-tab="profile" aria-current="false"><span class="tab-av" id="tab-av" aria-hidden="true"></span>Profile</button>
+    </nav>
+  </div>
+  <div class="cap"><b>NOISE</b> · swipe <b>up/down</b> for trends, <b>left/right</b> for more media. Tap a clip or the @curator for the story; <b>Signal</b> to call where it’s heading. Sample clips are placeholders.</div>
+</div>
+
+<script src="scripts/data.js"></script>
+<script src="scripts/app.js"></script>
+</body>
+</html>

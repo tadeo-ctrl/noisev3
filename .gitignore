@@ -1,0 +1,27 @@
+# Media the APP needs (media/**/0N.mp4, pNN.jpg, thumbs/) IS committed — Vercel builds from the
+# repo, so it has to be there. What's excluded below is everything the app never loads.
+
+# Pre-edit backups (133MB). Local safety net only — never deploy, never push.
+media/_originals/
+
+# Removed as a trend; files kept locally in case you want them back.
+media/mewing/
+
+# Uncropped source footage (49MB). The app only reads numbered .mp4s, so these would be
+# dead weight in the repo. Keep them on your Mac to crop.
+*.mov
+
+# Deps + tooling
+node_modules/
+scripts/_qa-final.mjs
+scripts/fetch-media.sh
+scripts/fetch-media-retry.sh
+
+# Not part of the web app
+react-native/
+*.zip
+*.docx
+
+# macOS
+.DS_Store
+**/.DS_Store

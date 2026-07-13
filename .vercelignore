@@ -1,0 +1,31 @@
+# Keep the deploy to just what the app actually loads.
+# Nothing here is deleted locally — this only controls what gets uploaded.
+
+# Pre-edit backups of media (85MB). Local safety net, not needed in the demo.
+media/_originals/
+
+# Removed as a trend; the folder is still on disk but the app never reads it.
+media/mewing/
+
+# Source files the app can't play (.mov isn't in the 01.mp4 numbering the app reads).
+# Kept locally so you can still crop them.
+media/**/*.mov
+
+# Dev + QA tooling
+scripts/_qa-final.mjs
+scripts/basic-regression.mjs
+scripts/mobile-carousel-smoke.mjs
+scripts/fetch-media.sh
+scripts/fetch-media-retry.sh
+node_modules/
+package.json
+package-lock.json
+
+# Not part of the web app
+react-native/
+Collections.docx
+*.zip
+
+# macOS cruft
+.DS_Store
+**/.DS_Store
