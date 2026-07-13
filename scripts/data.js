@@ -240,7 +240,6 @@ var FORCEDEFS=[
  ["samaltman","Sam Altman",236,true,64,3,2,"The operator the AI market reads like scripture."],
  ["nvidia","Nvidia",640,true,72,6,3,"The picks-and-shovels king every AI trend runs on."],
  ["cursor","Cursor",480,true,79,16,0,"Made 'vibe coding' a way of building, not a meme."],
- ["clavicular","Clavicular",145,true,84,18,0,"The looksmaxxing influencer who turned bone structure into a scoreboard."],
  ["acupuncture","Acupuncture",250,true,83,7,9,"The most legible on-ramp into TCM for skeptics."],
  ["nicotinepouches","Nicotine Pouches",320,true,80,11,2,"The category Zyns turned into a lifestyle."],
  ["whoop","Whoop",360,true,70,8,2,"Made recovery scores a personality trait."],
@@ -280,28 +279,23 @@ var SUBMAP={
  eggs:[["bearmarket",38],["unemployment",28],["privatecredit",20]],
  gtavi:[["rockstar",50],["pokemon",26],["gameboymod",22],["starwars",18]],
  rockstar:[["gtavi",50],["pokemon",26],["gameboymod",22],["starwars",18]],
- pokemon:[["blindboxes",38],["gameboymod",28],["gtavi",22],["ninetiesnostalgia",18]],
+ pokemon:[["gameboymod",28],["gtavi",22],["ninetiesnostalgia",18]],
  gameboymod:[["ninetiesnostalgia",38],["analog",30],["pokemon",24],["filmcameras",20]],
- starwars:[["pokemon",36],["blindboxes",28],["ninetiesnostalgia",24],["gtavi",20]],
- looksmaxxing:[["clavicular",42],["calisthenics",26],["wearables",20]],
- clavicular:[["looksmaxxing",42],["calisthenics",24],["wearables",18]],
- calisthenics:[["looksmaxxing",36],["runclubs",28],["wearables",24]],
- runclubs:[["calisthenics",38],["wearables",28],["irl",24],["cgm",18]],
- wearables:[["agi",36],["cgm",30],["calisthenics",24],["peptides",20]],
- cgm:[["wearables",40],["peptides",30],["calisthenics",24],["looksmaxxing",18]],
- peptides:[["cgm",38],["wearables",28],["looksmaxxing",22],["calisthenics",18]],
- zyns:[["looksmaxxing",34],["calisthenics",28],["peptides",22],["irl",18]],
+ starwars:[["pokemon",36],["ninetiesnostalgia",24],["gtavi",20]],
+ calisthenics:[["runclubs",28],["wearables",24]],
+ runclubs:[["calisthenics",38],["wearables",28],["irl",24]],
+ wearables:[["agi",36],["calisthenics",24],["peptides",20]],
+ peptides:[["wearables",28],["calisthenics",18]],
  attentioneconomy:[["dopaminesites",44],["tiktok",34],["irl",20]],
  dopaminesites:[["attentioneconomy",44],["tiktok",34],["irl",20]],
  tiktok:[["attentioneconomy",40],["dopaminesites",32],["irl",20]],
  irl:[["tiktok",38],["attentioneconomy",28],["dopaminesites",24],["runclubs",18]],
- obsession:[["dopaminesites",36],["blindboxes",28],["attentioneconomy",24],["looksmaxxing",18]],
+ obsession:[["dopaminesites",36],["attentioneconomy",24]],
  ninetiesnostalgia:[["kurtcobain",38],["gameboymod",30],["analog",26],["filmcameras",20]],
  kurtcobain:[["ninetiesnostalgia",40],["analog",30],["filmcameras",24],["gameboymod",18]],
  analog:[["filmcameras",40],["ninetiesnostalgia",30],["gameboymod",24],["kurtcobain",18]],
  filmcameras:[["analog",42],["ninetiesnostalgia",30],["kurtcobain",24],["gameboymod",18]],
- blindboxes:[["pokemon",38],["tastewashing",28],["obsession",24],["starwars",18]],
- tastewashing:[["blindboxes",34],["analog",26],["obsession",22]],
+ tastewashing:[["analog",26],["obsession",22]],
  prowrestling:[["wwe",50],["irl",24],["obsession",20],["gtavi",18]],
  wwe:[["prowrestling",50],["irl",24],["obsession",20],["gtavi",18]]
 };
@@ -556,12 +550,12 @@ var COLLECTIONS={
 (function(){
   // ===== Allowlist: ONLY the trends specified in the clip doc may appear in the prototype. =====
   // Anything not listed here is fully removed from data, feed order, forces, and related sections.
-  var ALLOWED={humanoidrobots:1,claude:1,chatgpt:1,agi:1,gtavi:1,irl:1,runclubs:1,vibecoding:1,looksmaxxing:1,coinbase:1,
+  var ALLOWED={humanoidrobots:1,claude:1,chatgpt:1,agi:1,gtavi:1,irl:1,runclubs:1,vibecoding:1,coinbase:1,
     /* "slop" removed — not a real trend. */
     pokemon:1,wearables:1,starwars:1,bearmarket:1,attentioneconomy:1,unemployment:1,eggs:1,privatecredit:1,
-    dopaminesites:1,gameboymod:1,ninetiesnostalgia:1,cgm:1,blindboxes:1,tastewashing:1,prowrestling:1,analog:1,obsession:1,
-    calisthenics:1,zyns:1,peptides:1,tesla:1,elonmusk:1,figureai:1,onex:1,tiktok:1,kurtcobain:1,wwe:1,filmcameras:1,
-    openai:1,anthropic:1,samaltman:1,clavicular:1,rockstar:1};
+    dopaminesites:1,gameboymod:1,ninetiesnostalgia:1,tastewashing:1,prowrestling:1,analog:1,obsession:1,
+    calisthenics:1,peptides:1,tesla:1,elonmusk:1,figureai:1,onex:1,tiktok:1,kurtcobain:1,wwe:1,filmcameras:1,
+    openai:1,anthropic:1,samaltman:1,rockstar:1};
   window.__ALLOWED=ALLOWED;
   var DEL={}; Object.keys(T).forEach(function(id){if(!ALLOWED[id])DEL[id]=1;});
   Object.keys(DEL).forEach(function(id){delete T[id];});
@@ -632,7 +626,7 @@ var POSTS=[
   {id:"claude",u:"@claudehead",t:"2h",text:"shipped a 12-file refactor in one prompt today. this is the workhorse now.",up:14,c:6},
   {id:"gtavi",u:"@viceloop",t:"4h",text:"map theory: the trailer water physics basically confirm the full coastline. calling it.",up:22,c:11},
   {id:"runclubs",u:"@pacers",t:"6h",text:"the 6am crew hit 1000 runners this week. it really is the new nightlife.",up:12,c:5},
-  {id:"blindboxes",u:"@popmart",t:"14h",text:"pulled the chase figure on the third box. resale already 4x. send help.",up:8,c:4},
+  {id:"irl",u:"@popmart",t:"14h",text:"pulled the chase figure on the third box. resale already 4x. send help.",up:8,c:4},
   {id:"bearmarket",u:"@redcandle",t:"1d",text:"capitulation candle printed. either the bottom or i'm about to look very dumb.",up:11,c:9},
   {id:"humanoidrobots",u:"@eloquent",t:"1d",text:"the laundry-folding demo is staged but the hands are real progress. underrated week.",up:7,c:3},
   {id:"vibecoding",u:"@shipfast",t:"2d",text:"shipped a whole app this weekend without writing a function by hand. wild times.",up:13,c:5}
@@ -659,18 +653,18 @@ var PROFILES={
 
 // ===== Video manifest: which trends have clips (and how many). Prevents 404s + caps memory. =====
 // As clips are added to media/<slug>/, list the slug here with its clip count.
-var CLIPS={agi:2,analog:2,anthropic:2,attentioneconomy:3,bearmarket:2,blindboxes:1,calisthenics:1,cgm:2,chatgpt:2,claude:4,clavicular:2,coinbase:3,dopaminesites:3,eggs:2,elonmusk:2,figureai:3,filmcameras:2,gameboymod:3,gtavi:3,humanoidrobots:3,irl:1,kurtcobain:3,looksmaxxing:2,ninetiesnostalgia:2,obsession:3,onex:1,peptides:2,pokemon:3,privatecredit:2,prowrestling:2,rockstar:2,runclubs:3,samaltman:1,starwars:3,tastewashing:2,tesla:3,tiktok:4,unemployment:2,vibecoding:2,wearables:3,wwe:2,zyns:1};
+var CLIPS={agi:2,analog:2,anthropic:2,attentioneconomy:3,bearmarket:2,calisthenics:1,chatgpt:2,claude:4,coinbase:3,dopaminesites:3,eggs:2,elonmusk:2,figureai:3,filmcameras:2,gameboymod:3,gtavi:3,humanoidrobots:3,irl:1,kurtcobain:3,ninetiesnostalgia:2,obsession:3,onex:1,peptides:2,pokemon:3,privatecredit:2,prowrestling:2,rockstar:2,runclubs:3,samaltman:1,starwars:3,tastewashing:2,tesla:3,tiktok:4,unemployment:2,vibecoding:2,wearables:3,wwe:2};
 
 // ===== Photo manifest: stills that live in media/<id>/p01.jpg, p02.jpg ... =====
 // Auto-generated from the media folder. media/ is now the ONLY source of imagery —
 // the app no longer reads the old "cosmos imagery" folder or any external URL.
-var MEDIA_PHOTOS={"agi":2,"analog":2,"anthropic":1,"attentioneconomy":1,"bearmarket":2,"blindboxes":3,"calisthenics":2,"cgm":2,"chatgpt":2,"clavicular":2,"coinbase":2,"dopaminesites":1,"eggs":2,"elonmusk":2,"figureai":1,"filmcameras":1,"gtavi":1,"irl":3,"kurtcobain":1,"looksmaxxing":2,"ninetiesnostalgia":2,"obsession":1,"onex":2,"peptides":2,"pokemon":1,"privatecredit":2,"prowrestling":2,"rockstar":2,"runclubs":1,"samaltman":3,"starwars":1,"tastewashing":1,"tesla":1,"unemployment":2,"vibecoding":2,"wearables":1,"wwe":2,"zyns":3};
+var MEDIA_PHOTOS={"agi":2,"analog":2,"anthropic":1,"attentioneconomy":1,"bearmarket":2,"calisthenics":2,"chatgpt":2,"coinbase":2,"dopaminesites":1,"eggs":2,"elonmusk":2,"figureai":1,"filmcameras":1,"gtavi":1,"irl":3,"kurtcobain":1,"ninetiesnostalgia":2,"obsession":1,"onex":2,"peptides":2,"pokemon":1,"privatecredit":2,"prowrestling":2,"rockstar":2,"runclubs":1,"samaltman":3,"starwars":1,"tastewashing":1,"tesla":1,"unemployment":2,"vibecoding":2,"wearables":1,"wwe":2};
 
 // ===== Which clips still have a poster frame on disk. =====
 // Posters are optional — delete any media/<id>/0N.jpg you do not want. This manifest just stops
 // the app requesting the ones that are gone (a 404 on every load). Clips with no poster show the
 // trend colour until the video decodes.
-var CLIP_POSTERS={"agi":[1,2],"analog":[1,2],"anthropic":[1,2],"attentioneconomy":[1,2,3],"bearmarket":[1,2],"blindboxes":[1],"calisthenics":[1],"cgm":[1,2],"chatgpt":[1,2],"claude":[1,2,3,4],"clavicular":[1,2],"coinbase":[1,2,3],"dopaminesites":[1,2,3],"eggs":[1,2],"elonmusk":[1,2],"figureai":[1,2,3],"filmcameras":[1,2],"gameboymod":[1,2,3],"gtavi":[1,2,3],"humanoidrobots":[1,2,3],"irl":[1],"kurtcobain":[1,2,3],"looksmaxxing":[1,2],"ninetiesnostalgia":[1,2],"obsession":[1,2,3],"onex":[1],"peptides":[1,2],"pokemon":[1,2,3],"privatecredit":[1,2],"prowrestling":[1,2],"rockstar":[1,2],"runclubs":[1,2,3],"samaltman":[1],"starwars":[1,2,3],"tastewashing":[1,2],"tesla":[1,2,3],"tiktok":[1,2,3,4],"unemployment":[1,2],"vibecoding":[1,2],"wearables":[1,2,3],"wwe":[1,2],"zyns":[1]};
+var CLIP_POSTERS={"agi":[1,2],"analog":[1,2],"anthropic":[1,2],"attentioneconomy":[1,2,3],"bearmarket":[1,2],"calisthenics":[1],"chatgpt":[1,2],"claude":[1,2,3,4],"coinbase":[1,2,3],"dopaminesites":[1,2,3],"eggs":[1,2],"elonmusk":[1,2],"figureai":[1,2,3],"filmcameras":[1,2],"gameboymod":[1,2,3],"gtavi":[1,2,3],"humanoidrobots":[1,2,3],"irl":[1],"kurtcobain":[1,2,3],"ninetiesnostalgia":[1,2],"obsession":[1,2,3],"onex":[1],"peptides":[1,2],"pokemon":[1,2,3],"privatecredit":[1,2],"prowrestling":[1,2],"rockstar":[1,2],"runclubs":[1,2,3],"samaltman":[1],"starwars":[1,2,3],"tastewashing":[1,2],"tesla":[1,2,3],"tiktok":[1,2,3,4],"unemployment":[1,2],"vibecoding":[1,2],"wearables":[1,2,3],"wwe":[1,2]};
 
 
 
@@ -686,11 +680,11 @@ var MEDIA_DONOR={
   // AI
   nvidia:"agi", aiagents:"agi", openai:"chatgpt", cursor:"vibecoding",
   // body / health
-  bryanjohnson:"peptides", acupuncture:"peptides", levels:"cgm", nicotinepouches:"zyns",
+  bryanjohnson:"peptides", acupuncture:"peptides", levels:"irl", nicotinepouches:"irl",
   whoop:"wearables", oura:"wearables", metaraybans:"wearables",
   strava:"runclubs", chrisheria:"calisthenics",
   // collecting / play
-  labubu:"blindboxes", popmart:"blindboxes", poketcg:"pokemon",
+  labubu:"irl", popmart:"irl", poketcg:"pokemon",
   grogu:"starwars", disney:"starwars", tamagotchi:"gameboymod",
   // culture / media
   vinyl:"analog", reelshort:"tiktok", grime:"irl", jungle:"irl"
@@ -724,7 +718,6 @@ var MEDIA_ORDER={
   filmcameras:      ["02.mp4","p01.jpg","01.mp4"],
   rockstar:         ["01.mp4","p01.jpg","p02.jpg","02.mp4"],
   kurtcobain:       ["01.mp4","p01.jpg","02.mp4","03.mp4"],
-  looksmaxxing:     ["01.mp4","p01.jpg","p02.jpg","02.mp4"],
   pokemon:          ["01.mp4","p01.jpg","02.mp4","03.mp4"],
   coinbase:         ["01.mp4","p01.jpg","03.mp4","p02.jpg","02.mp4"],
   starwars:         ["03.mp4","p01.jpg","01.mp4","02.mp4"],

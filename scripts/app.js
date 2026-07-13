@@ -973,7 +973,7 @@
   // Watchlist (favourites) + market helpers
   var favs={};   // degree alerts removed
   // seed a handful of saved trends so the profile Favorites collection is meaningful in the demo
-  ['humanoidrobots','claude','agi','gtavi','runclubs','coinbase','pokemon','looksmaxxing'].forEach(function(id){favs[id]=true;});
+  ['humanoidrobots','claude','agi','gtavi','runclubs','coinbase','pokemon','starwars'].forEach(function(id){favs[id]=true;});
   // search filter state + option data
   var exFilters={when:'today',sort:'trending',country:'us',city:'all'};
   var WHEN_OPTS=[['today','Today','Trends moving in the last 24 hours'],['week','This week','Activity from the past 7 days'],['month','This month','Activity from the past 30 days'],['all','All time','Every trend on record']];
@@ -1031,7 +1031,10 @@
       if(!q)return true;var t=T[id];return (t.name+' '+t.user+' '+t.zone+' '+t.kind).toLowerCase().indexOf(q)>=0;});
     ids2=ids2.slice();
     var sk=exFilters.sort;
-    if(sk==='latest'||sk==='trending'){ids2.sort(function(a,b){return trendChg(T[b])-trendChg(T[a]);});}
+    // "Trending" is the default and must MATCH THE FEED. `order` is already sorted by degree
+    // (highest first), so we simply don't re-sort — search and the feed then read identically.
+    // "Latest" is the one that ranks by recent movement instead.
+    if(sk==='latest'){ids2.sort(function(a,b){return trendChg(T[b])-trendChg(T[a]);});}
     else if(sk==='newest'){ids2.sort(function(a,b){return (exSeed(b)-exSeed(a));});}
     else if(sk==='oldest'){ids2.sort(function(a,b){return (exSeed(a)-exSeed(b));});}
     exIds=ids2;
@@ -1935,7 +1938,7 @@
   //   "Not what you were thinking?" sends you back to rewrite. Pick a topic -> add content
   //   (>=1 picture) -> publish -> land on the new trend's page.
   var CT_GALLERY=['agi','chatgpt','claude','anthropic','figureai','elonmusk','coinbase','bearmarket',
-    'attentioneconomy','dopaminesites','calisthenics','analog','blindboxes','cgm','eggs','gtavi'];
+    'attentioneconomy','dopaminesites','calisthenics','analog','pokemon','peptides','eggs','gtavi'];
   var ctState={think:'',name:'',pics:[],desc:''}, ctSearchT=null;
   // Dropdown chooser: unfolds from the ＋ that opened it (feed top-right, or the Posts FAB).
   function openCreateChooser(trigger){var s=document.getElementById('createsheet');if(!s)return;
@@ -2116,9 +2119,9 @@
     // Covers borrow a still from the closest real trend — all from media/, no cosmos folder.
     {id:'pend-vertical-ai',name:'Vertical AI Agents',user:'@deepdive',deg:218,coverUrl:'media/agi/p01.jpg',promotes:4},
     {id:'pend-onchain',name:'Onchain Culture',user:'@bluechip',deg:174,coverUrl:'media/coinbase/p01.jpg',promotes:3},
-    {id:'pend-metabolic',name:'Metabolic Tracking',user:'@earlybird',deg:190,coverUrl:'media/cgm/p01.jpg',promotes:4},
+    {id:'pend-metabolic',name:'Metabolic Tracking',user:'@earlybird',deg:190,coverUrl:'media/peptides/p01.jpg',promotes:4},
     {id:'pend-analog',name:'Analog Revival',user:'@nightowl',deg:145,coverUrl:'media/analog/p01.jpg',promotes:2},
-    {id:'pend-blindbox',name:'Blind Box Mania',user:'@thelist',deg:160,coverUrl:'media/blindboxes/p01.jpg',promotes:1},
+    {id:'pend-blindbox',name:'Blind Box Mania',user:'@thelist',deg:160,coverUrl:'media/pokemon/p01.jpg',promotes:1},
     {id:'pend-mine-seed',name:'Silent Walking',user:'@you',deg:131,coverUrl:'media/analog/p02.jpg',promotes:3}
   ];
   var rvQueue=[];
@@ -2310,7 +2313,7 @@
   var userLists=[
     {key:'seed-c1',name:'AI Frontier',vis:'public',ids:['agi','claude','chatgpt']},
     {key:'seed-c2',name:'Crypto Pulse',vis:'public',ids:['coinbase','bearmarket','privatecredit']},
-    {key:'seed-c3',name:'Looks & Culture',vis:'public',ids:['looksmaxxing','clavicular']},
+    {key:'seed-c3',name:'Body & Habit',vis:'public',ids:['calisthenics','peptides','runclubs']},
     {key:'seed-a1',name:'Weird internet',vis:'private',ids:['dopaminesites','attentioneconomy','irl']},
     {key:'seed-a2',name:'Analog heart',vis:'private',ids:['analog','filmcameras','ninetiesnostalgia']}
   ], nl={name:'',vis:'private',ids:[]}, nlQuery='', nlEditKey=null, favName='Favorites';
@@ -2318,7 +2321,7 @@
   if(typeof POSTS!=='undefined'){POSTS.unshift(
     {id:'vibecoding',u:'@you',t:'3h',title:'The loop is the product',text:'shipped a full feature from one prompt. the loop is the product now.',up:6,c:2},
     {id:'coinbase',u:'@you',t:'1d',title:'Onchain is quietly ripping',text:'onchain volume quietly ripping while everyone looks away.',up:9,c:3},
-    {id:'looksmaxxing',u:'@you',t:'2d',title:'Mewing goes mainstream',text:'the mewing-to-mainstream pipeline is faster than any trend i have tracked.',up:5,c:1}
+    {id:'runclubs',u:'@you',t:'2d',title:'The run club is the new bar',text:'saturday morning is the new saturday night. every city has one now.',up:5,c:1}
   );
   // Posts are text only — no user-uploaded pictures.
   POSTS.forEach(function(pp){ delete pp.pic; });
