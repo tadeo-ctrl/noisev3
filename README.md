@@ -25,6 +25,18 @@ npm run dev -- --host 0.0.0.0 --port 8080
 
 The local server disables caching and supports HTTP byte ranges so the prototype's MP4 assets behave like they do in deployment.
 
+### Test on a phone
+
+Keep the Mac and phone on the same Wi-Fi network, then expose the development server to the local network:
+
+```sh
+npm run dev -- --host 0.0.0.0
+```
+
+Find the Mac's Wi-Fi address with `ipconfig getifaddr en1`, then open `http://<wifi-address>:4173` in Safari on the phone. The address can change when the Mac reconnects to Wi-Fi.
+
+If the page does not load, check that neither device is using a guest network or VPN and allow incoming connections for Node if macOS asks. Plain HTTP is sufficient for this prototype; browser features that require a secure context, such as camera or microphone access, will require a local HTTPS setup.
+
 ## Checks
 
 ```sh
