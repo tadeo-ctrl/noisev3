@@ -582,7 +582,90 @@
   function setBal(){var b=document.querySelectorAll('[data-bal]');for(var i=0;i<b.length;i++)b[i].textContent=fmt(balance);
     var fb=document.getElementById('fc-bal');if(fb)fb.textContent=fmt(balance);}
 
-  var screens={feed:'s-feed',explore:'s-explore',detail:'s-detail',forecasts:'s-forecasts',taste:'s-taste',profile:'s-profile',settings:'s-settings',collection:'s-collection',timeline:'s-timeline',posts:'s-posts',saved:'s-saved',stub:'s-stub',userlist:'s-userlist',postdetail:'s-postdetail',notif:'s-notif',editprofile:'s-editprofile',security:'s-security',help:'s-help',invite:'s-invite',article:'s-article',signaldetail:'s-signaldetail',chart:'s-chart',newlist:'s-newlist',createtrend:'s-createtrend',review:'s-review',trendconvo:'s-trendconvo',pending:'s-pending'};
+  // Horizontal media/card rows use a custom pointer-driven rail instead of native overflow.
+  // That keeps swipe and click-drag gestures while preventing mobile browsers from painting a
+  // horizontal scroll indicator over the app-like UI.
+  function dragRailMax(el){return Math.max(0,el.scrollWidth-el.clientWidth);}
+  function dragRailClamp(el,x){return Math.max(0,Math.min(dragRailMax(el),x));}
+  function dragRailSnap(el,projected){
+    var cards=Array.prototype.slice.call(el.children),pad=parseFloat(getComputedStyle(el).paddingLeft)||0;
+    if(!cards.length)return dragRailClamp(el,projected);
+    var railBox=el.getBoundingClientRect(),target=0,best=Infinity;
+    cards.forEach(function(card){
+      var x=dragRailClamp(el,el.scrollLeft+card.getBoundingClientRect().left-railBox.left-pad),d=Math.abs(x-projected);
+      if(d<best){best=d;target=x;}
+    });
+    return target;
+  }
+  function animateDragRail(el,target){
+    cancelAnimationFrame(el._dragRailFrame);
+    target=dragRailClamp(el,target);
+    var start=el.scrollLeft,delta=target-start;
+    if(Math.abs(delta)<1||prefersReducedMotion()){
+      el.scrollLeft=target;return;
+    }
+    var t0=performance.now(),duration=Math.min(420,Math.max(180,Math.abs(delta)*1.15));
+    function tick(now){
+      var p=Math.min(1,(now-t0)/duration),ease=1-Math.pow(1-p,3);
+      el.scrollLeft=start+delta*ease;
+      if(p<1)el._dragRailFrame=requestAnimationFrame(tick);
+    }
+    el._dragRailFrame=requestAnimationFrame(tick);
+  }
+  function resetDragRail(el){
+    if(!el)return;
+    cancelAnimationFrame(el._dragRailFrame);
+    el.classList.remove('dragging');
+    el.scrollLeft=0;
+  }
+  function wireDragRail(el){
+    if(!el||el._dragRailWired)return;
+    el._dragRailWired=true;
+    var pid=null,x0=0,y0=0,start=0,lastX=0,lastT=0,vx=0,axis='',moved=false;
+    el.addEventListener('dragstart',function(e){e.preventDefault();});
+    el.addEventListener('pointerdown',function(e){
+      if(e.button!=null&&e.button!==0)return;
+      cancelAnimationFrame(el._dragRailFrame);
+      el._dragRailSuppress=false;
+      pid=e.pointerId;x0=lastX=e.clientX;y0=e.clientY;start=el.scrollLeft;lastT=performance.now();vx=0;axis='';moved=false;
+    });
+    el.addEventListener('pointermove',function(e){
+      if(pid!==e.pointerId)return;
+      var dx=e.clientX-x0,dy=e.clientY-y0,adx=Math.abs(dx),ady=Math.abs(dy);
+      if(!axis&&(adx>7||ady>7))axis=adx>ady*1.15?'x':'y';
+      if(axis!=='x')return;
+      if(el.setPointerCapture){try{el.setPointerCapture(pid);}catch(err){}}
+      e.preventDefault();
+      moved=moved||adx>7;
+      el.classList.add('dragging');
+      el.scrollLeft=dragRailClamp(el,start-dx);
+      var now=performance.now(),dt=Math.max(1,now-lastT),step=(lastX-e.clientX)/dt;
+      vx=vx*.55+step*.45;lastX=e.clientX;lastT=now;
+    });
+    function end(e,cancelled){
+      if(pid!==e.pointerId)return;
+      el.classList.remove('dragging');
+      if(axis==='x'){
+        var fling=Math.max(-2.2,Math.min(2.2,vx))*180;
+        var projected=cancelled?el.scrollLeft:el.scrollLeft+fling;
+        animateDragRail(el,dragRailSnap(el,projected));
+        if(moved){
+          el._dragRailSuppress=true;
+        }
+      }
+      if(el.releasePointerCapture){try{el.releasePointerCapture(pid);}catch(err){}}
+      pid=null;axis='';moved=false;
+    }
+    el.addEventListener('pointerup',function(e){end(e,false);});
+    el.addEventListener('pointercancel',function(e){end(e,true);});
+    el.addEventListener('click',function(e){
+      if(!el._dragRailSuppress)return;
+      el._dragRailSuppress=false;
+      e.preventDefault();e.stopImmediatePropagation();
+    },true);
+  }
+
+  var screens={feed:'s-feed',explore:'s-explore',detail:'s-detail',forecasts:'s-forecasts',taste:'s-taste',profile:'s-profile',settings:'s-settings',collection:'s-collection',timeline:'s-timeline',posts:'s-posts',saved:'s-saved',stub:'s-stub',userlist:'s-userlist',postdetail:'s-postdetail',notif:'s-notif',editprofile:'s-editprofile',security:'s-security',help:'s-help',invite:'s-invite',article:'s-article',signaldetail:'s-signaldetail',chart:'s-chart',newlist:'s-newlist',createtrend:'s-createtrend',review:'s-review',trendposts:'s-trendposts',pending:'s-pending'};
   function currentScreenKey(){var k='feed';Object.keys(screens).forEach(function(key){if(document.getElementById(screens[key]).classList.contains('active'))k=key;});return k;}
   var phoneShell=document.getElementById('phone');
   function lockPhoneShellScroll(){if(!phoneShell)return;if(phoneShell.scrollTop)phoneShell.scrollTop=0;if(phoneShell.scrollLeft)phoneShell.scrollLeft=0;}
@@ -859,7 +942,7 @@
     if(!isBack){ if(ROOTS.indexOf(tab)>=0){navStack=[];} else if(cur!==tab){navStack.push(cur);} }
     Object.keys(screens).forEach(function(k){document.getElementById(screens[k]).classList.toggle('active',k===tab);});
     lockPhoneShellScroll();
-    var SUBS=['detail','profile','settings','collection','timeline','saved','stub','userlist','postdetail','notif','editprofile','security','help','invite','article','signaldetail','forecasts','chart','newlist','createtrend','review','trendconvo','pending'];
+    var SUBS=['detail','profile','settings','collection','timeline','saved','stub','userlist','postdetail','notif','editprofile','security','help','invite','article','signaldetail','forecasts','chart','newlist','createtrend','review','trendposts','pending'];
     var sub=SUBS.indexOf(tab)>=0;
     // Your own profile is a primary tab (highlight it); other users' profiles stay a sub-screen.
     var navKey=sub?((tab==='profile'&&currentProfile==='@you')?'profile':null):tab;
@@ -873,7 +956,7 @@
     if(tab==='taste')renderTaste();
     if(tab==='explore')renderExplore();
     if(tab==='posts')renderPosts();
-    if(tab==='trendconvo')renderTrendConvo();
+    if(tab==='trendposts')renderTrendPostFeed();
     if(tab==='pending')renderPending();
     activateScreenMedia(tab);
     if(tab==='detail'&&!isBack)playZoomIn(); else zoomOrigin=null;
@@ -929,6 +1012,7 @@
     if(next>exShown){
       list.insertAdjacentHTML('beforeend',exIds.slice(exShown,next).map(exRowHTML).join(''));
       exShown=next;
+      list.querySelectorAll('.ex-car').forEach(wireDragRail);
       observeVids(list);
       refreshActiveMedia(list);
     }
@@ -1403,7 +1487,7 @@
 
   function openDetail(id){
     currentId=id; var t=T[id];
-    var car=document.getElementById('d-car'); releaseMediaIn(car); car.innerHTML=carTiles(t,id); car.scrollLeft=0;
+    var car=document.getElementById('d-car'); releaseMediaIn(car); car.innerHTML=carTiles(t,id); resetDragRail(car); wireDragRail(car);
     observeVids(car);
     // Tint the ambient hero glow with this trend's own palette so each trend feels like its own world.
     var dglow=document.getElementById('d-glow');
@@ -1828,7 +1912,7 @@
     var sw=document.getElementById('cmp-sel-sw');sw.style.display='block';sw.style.background='linear-gradient(135deg,'+t.theme[0]+','+t.theme[2]+')';
     var dd=document.getElementById('cmp-dd');releaseMediaIn(dd);dd.hidden=true;setCmpPost();
     document.getElementById('cmp-title').focus();}
-  var composeReturnTrend=null;   // when set, submitting a post returns to that trend's Conversations screen
+  var composeReturnTrend=null;   // when set, submitting a post returns to that trend's Posts screen
   function openCompose(){cmpTrend=null;composeReturnTrend=null;
     document.getElementById('cmp-sel-label').textContent='Select trend';
     document.getElementById('cmp-sel-sw').style.display='none';
@@ -1841,7 +1925,7 @@
     var txt=document.getElementById('cmp-text').value.trim();
     POSTS.push({id:cmpTrend,u:"@you",t:"now",title:ttl,text:txt,up:0,c:0});
     closeAll();postsSort='new';
-    if(composeReturnTrend){var rid=composeReturnTrend;composeReturnTrend=null;tcTrend=rid;tcWhen='today';renderTrendConvo();show('trendconvo');return;}
+    if(composeReturnTrend){var rid=composeReturnTrend;composeReturnTrend=null;tcTrend=rid;tcWhen='today';renderTrendPostFeed();show('trendposts');return;}
     renderPosts();show('posts');}
 
   // ===== Curator: create a trend =====================================================
@@ -2241,7 +2325,7 @@
   }
   // ===== ROLE =====
   // Curator  : can create trends, review submissions, and make public (= tradable) collections.
-  // User     : browses, signals, posts in conversations, and keeps PRIVATE collections only.
+  // User     : browses, signals, publishes posts, and keeps PRIVATE collections only.
   // Flip it in Settings > "Browse as a user". Persisted, because on a phone a stray reload
   // would otherwise snap the demo silently back to Curator.
   var ROLE_KEY='noise.role';
@@ -2713,6 +2797,7 @@
     var html='';
     entries.forEach(function(e){cfStore[e.key]=e;html+=collCarouselCardHTML(e);});
     host.innerHTML=html;
+    resetDragRail(host);wireDragRail(host);
   }
   // Related = an infinite 2-col masonry of trends: this trend's related trends first, then broader.
   var rfState={id:null,n:0,colH:[0,0],relCount:0}, _rfPool={};
@@ -2741,6 +2826,7 @@
     }
     host.innerHTML=cards?('<div class="rf-hd-rel">Related</div>'+
       '<div class="cs-scroll rel-scroll">'+cards+'</div>'):'';
+    var rail=host.querySelector('.rel-scroll');if(rail){resetDragRail(rail);wireDragRail(rail);}
   }
   // Profile header collapse (Cosmos): the bar's backdrop goes solid FAST while the big
   // header fades out underneath, so any freeze-frame mid-scroll reads as one clean state -
@@ -2787,14 +2873,14 @@
     else if(postsSort==='top'){arr.sort(function(a,b){return (b.up+2*(b.c||0))-(a.up+2*(a.c||0));});}
     else{arr.sort(function(a,b){return postHot(b)-postHot(a);});} // Hot: engagement decayed by age
     var postsList=document.getElementById('posts-list');releaseMediaIn(postsList);
-    var filterBar=(postsTrendFilter&&T[postsTrendFilter])?'<button class="posts-filterbar" id="posts-clearfilter">Conversations · <b>'+T[postsTrendFilter].name+'</b><span class="pfx">Clear ✕</span></button>':'';
+    var filterBar=(postsTrendFilter&&T[postsTrendFilter])?'<button class="posts-filterbar" id="posts-clearfilter">Posts · <b>'+T[postsTrendFilter].name+'</b><span class="pfx">Clear ✕</span></button>':'';
     postsList.innerHTML=filterBar+arr.map(postCardHTML).join('');
     // Play clips on the post placeholders (only 8 posts, all map to trends with clips).
     var _pl=document.getElementById('posts-list');
     refreshActiveMedia(_pl);
     var pe=document.getElementById('posts-empty'); if(pe)pe.style.display=arr.length?'none':'block';
   }
-  // Shared post-card markup, used by the global Posts tab and the per-trend Conversations screen.
+  // Shared post-card markup, used by the global Posts tab and the per-trend Posts screen.
   function postCardHTML(p){var t=T[p.id];
     var pid=POSTS.indexOf(p), v=postVotes[pid]||'', shown=p.up+(v==='up'?1:0)-(v==='down'?1:0);
     var pvs=vcount(p.id)?clipAttrs(p.id,(pid%vcount(p.id))+1,true):'';
@@ -2813,11 +2899,11 @@
       '</div>'+
     '</div>';
   }
-  // ===== Per-trend Conversations screen (opened from a trend's "See all") =====
+  // ===== Per-trend Posts screen (opened from a trend's "See all") =====
   // A focused feed of one trend's posts. No search — just a timeframe filter, plus open/compose.
   var tcTrend=null, tcWhen='today', tcSort='best';
-  function openTrendConvo(id){tcTrend=id;tcWhen='today';tcSort='best';show('trendconvo');}
-  function renderTrendConvo(){
+  function openTrendPostFeed(id){tcTrend=id;tcWhen='today';tcSort='best';show('trendposts');}
+  function renderTrendPostFeed(){
     if(!tcTrend)return;
     var arr=POSTS.filter(function(p){return p.id===tcTrend;});
     if(tcWhen!=='all'){var lim=tcWhen==='today'?24:tcWhen==='week'?168:720;arr=arr.filter(function(p){return timeVal(p.t)<=lim;});}
@@ -2986,7 +3072,7 @@
       // "Browse as a user" ON  => not a curator. Re-derives the whole UI, no reload needed.
       if(sw.id==='set-role'){ setRole(!son); showToast(son?'Browsing as a user':'Browsing as a curator'); }
       return;}
-    var vt=e.target.closest('.pr.vote'); if(vt){var pid=vt.getAttribute('data-pid'),d=vt.getAttribute('data-vote');postVotes[pid]=(postVotes[pid]===d)?'':d;renderPosts();if(currentScreenKey()==='postdetail')renderPostDetail();if(currentScreenKey()==='trendconvo')renderTrendConvo(); return;}
+    var vt=e.target.closest('.pr.vote'); if(vt){var pid=vt.getAttribute('data-pid'),d=vt.getAttribute('data-vote');postVotes[pid]=(postVotes[pid]===d)?'':d;renderPosts();if(currentScreenKey()==='postdetail')renderPostDetail();if(currentScreenKey()==='trendposts')renderTrendPostFeed(); return;}
     var flw=e.target.closest('.cb-follow'); if(flw){if(flw.id==='pf-follow'&&flw.dataset.self==='1'){openEdit();return;}
       var fh=flw.getAttribute('data-followtoggle'); if(fh){toggleFollow(fh);var fon=isFollowing(fh);flw.classList.toggle('on',fon);flw.textContent=fon?'Following':'Follow';return;}
       var on=flw.classList.toggle('on');flw.textContent=on?'Following':'Follow'; return;}
@@ -3025,13 +3111,13 @@
     var go=e.target.closest('[data-go]'); if(go){if(feedPanSuppress&&go.closest('#feed')){return;} var tp3=go.closest('[data-id]'); setZoomFrom(tp3||go); openDetail(tp3?tp3.getAttribute('data-id'):currentId); return;}
     var sh=e.target.closest('[data-share]'); if(sh){showToast('Link copied'); return;}
     var tpo=e.target.closest('[data-tpost]'); if(tpo){openPost(+tpo.getAttribute('data-tpost')); return;}   // trend-page discussion post
-    var dpa=e.target.closest('#dp-all'); if(dpa){openTrendConvo(currentId); return;}                          // See all -> per-trend Conversations screen
-    var dpc=e.target.closest('#dp-compose'); if(dpc){openCompose(); cmpPickTrend(currentId); composeReturnTrend=currentId; return;}   // post lands in this trend's dedicated conversation
+    var dpa=e.target.closest('#dp-all'); if(dpa){openTrendPostFeed(currentId); return;}                       // See all -> per-trend Posts screen
+    var dpc=e.target.closest('#dp-compose'); if(dpc){openCompose(); cmpPickTrend(currentId); composeReturnTrend=currentId; return;}   // post lands in this trend's dedicated Posts feed
     var rvm=e.target.closest('#rv-mine'); if(rvm){openPending(); return;}                                     // Review deck -> your own submissions in review
-    var tcf=e.target.closest('#tc-fab'); if(tcf){openCompose(); cmpPickTrend(tcTrend); composeReturnTrend=tcTrend; return;}  // new post from Conversations screen
+    var tcf=e.target.closest('#tc-fab'); if(tcf){openCompose(); cmpPickTrend(tcTrend); composeReturnTrend=tcTrend; return;}  // new post from Posts screen
     var tcw=e.target.closest('[data-tcsheet]'); if(tcw){openTcSheet(tcw.getAttribute('data-tcsheet')); return;}
-    var tcwo=e.target.closest('#tcwhen-list .fopt'); if(tcwo){tcWhen=tcwo.getAttribute('data-val');closeAll();renderTrendConvo();return;}
-    var tcso=e.target.closest('#tcsort-list .fopt'); if(tcso){tcSort=tcso.getAttribute('data-val');closeAll();renderTrendConvo();return;}
+    var tcwo=e.target.closest('#tcwhen-list .fopt'); if(tcwo){tcWhen=tcwo.getAttribute('data-val');closeAll();renderTrendPostFeed();return;}
+    var tcso=e.target.closest('#tcsort-list .fopt'); if(tcso){tcSort=tcso.getAttribute('data-val');closeAll();renderTrendPostFeed();return;}
     var pcf=e.target.closest('#posts-clearfilter'); if(pcf){postsTrendFilter=null; renderPosts(); return;}
     var po=e.target.closest('.post[data-post]'); if(po){openPost(+po.getAttribute('data-post')); return;}
     var tb=e.target.closest('[data-tab]'); if(tb){var tk=tb.getAttribute('data-tab'); if(tk==='posts')postsTrendFilter=null; if(tk==='profile')openProfile('@you'); else show(tk); return;}
@@ -3440,7 +3526,7 @@
   }
   function flashRefresh(){ /* tiny visual nudge that content reloaded */ }
   attachPTR(document.getElementById('posts-scroll'), document.getElementById('posts-ptr'), function(){renderPosts();});
-  attachPTR(document.getElementById('tc-scroll'), document.getElementById('tc-ptr'), function(){renderTrendConvo();});
+  attachPTR(document.getElementById('tc-scroll'), document.getElementById('tc-ptr'), function(){renderTrendPostFeed();});
   attachPTR(document.getElementById('feed'), document.getElementById('feed-ptr'), function(){renderFeed(feedKind);});
 
   function setAppHeight(){document.documentElement.style.setProperty('--app-height',window.innerHeight+'px');}

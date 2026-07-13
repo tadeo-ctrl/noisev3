@@ -59,9 +59,9 @@
           <div class="pro-detail" id="d-pro"></div>
           <div class="dbody">
             <div class="tsec" id="sec-posts">
-              <div class="tsec-h dp-head"><span>Conversations</span><button class="dp-all" id="dp-all">See all</button></div>
+              <div class="tsec-h dp-head"><span>Posts</span><button class="dp-all" id="dp-all">See all</button></div>
               <div id="d-posts"></div>
-              <button class="dp-compose" id="dp-compose">Join the conversation</button>
+              <button class="dp-compose" id="dp-compose">Create a post</button>
             </div>
             <div class="tsec" id="sec-moves">
               <div class="tsec-h">Timeline</div>
@@ -388,13 +388,13 @@
         </div>
       </section>
 
-      <!-- TREND CONVERSATIONS (per-trend, no search — timeframe only) -->
-      <section class="screen" id="s-trendconvo" aria-label="Conversations">
+      <!-- TREND POSTS (per-trend, no search — timeframe only) -->
+      <section class="screen" id="s-trendposts" aria-label="Posts">
         <div class="bgglow"></div>
         <button class="backbtn" id="tc-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
         <div class="scrollarea" id="tc-scroll">
           <div class="ptr" id="tc-ptr"><span class="ptr-spin"></span></div>
-          <div class="shead"><h1>Conversations</h1><p id="tc-name">Trend</p></div>
+          <div class="shead"><h1>Posts</h1><p id="tc-name">Trend</p></div>
           <div class="posts-filter-controls">
             <div class="exfilters posts-filters">
               <button class="exf" data-tcsheet="sort"><span id="tc-sort-lbl">Hot</span><svg class="exf-car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
@@ -403,7 +403,7 @@
             <button class="post-add-round" id="tc-fab" aria-label="New post"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
           </div>
           <div id="tc-list" class="posts-list"></div>
-          <div id="tc-empty" class="ex-empty" style="display:none;">No conversations yet. Be the first to post.</div>
+          <div id="tc-empty" class="ex-empty" style="display:none;">No posts yet. Be the first to post.</div>
         </div>
       </section>
 
@@ -699,16 +699,16 @@
       <div class="sheet-sub">Pick the window of posts to show.</div>
       <div class="fsheet-list" id="pwhen-list"></div>
     </div>
-    <div class="sheet glass" id="tcsheet-sort" role="dialog" aria-modal="true" aria-label="Sort conversations">
+    <div class="sheet glass" id="tcsheet-sort" role="dialog" aria-modal="true" aria-label="Sort posts">
       <div class="grab"></div>
       <div class="sheet-h">Sort by</div>
-      <div class="sheet-sub">Choose how conversations are ordered.</div>
+      <div class="sheet-sub">Choose how posts are ordered.</div>
       <div class="fsheet-list" id="tcsort-list"></div>
     </div>
     <div class="sheet glass" id="tcsheet-when" role="dialog" aria-modal="true" aria-label="When">
       <div class="grab"></div>
       <div class="sheet-h">Show</div>
-      <div class="sheet-sub">Pick the window of conversations to show.</div>
+      <div class="sheet-sub">Pick the window of posts to show.</div>
       <div class="fsheet-list" id="tcwhen-list"></div>
     </div>
     <div class="sheet glass" id="csheet-sort" role="dialog" aria-modal="true" aria-label="Sort comments">

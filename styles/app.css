@@ -244,8 +244,11 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 .dglow{display:none;position:absolute;left:50%;top:-56px;transform:translateX(-50%);width:150%;height:440px;z-index:0;pointer-events:none;opacity:.9;}
 
 /* margin-top clears the back arrow (which sits 48px -> 92px); 52px leaves it breathing room */
-.dcar{position:relative;z-index:1;flex:none;height:400px;margin-top:52px;display:flex;gap:10px;overflow-x:auto;touch-action:pan-x;overscroll-behavior-x:contain;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;margin-left:-20px;margin-right:-20px;padding:0 20px 0 40px;scroll-padding-left:40px;}
-.dcar::-webkit-scrollbar{height:0;}
+.dcar,.cs-scroll,#ex-list .ex-car{overflow-x:hidden;touch-action:pan-y;overscroll-behavior-x:none;scrollbar-width:none;cursor:grab;-webkit-user-select:none;user-select:none;}
+.dcar.dragging,.cs-scroll.dragging,#ex-list .ex-car.dragging{cursor:grabbing;}
+.dcar::-webkit-scrollbar,.cs-scroll::-webkit-scrollbar,#ex-list .ex-car::-webkit-scrollbar{display:none;width:0;height:0;}
+.dcar img,.dcar video,.cs-scroll img,.cs-scroll video,#ex-list .ex-car video{-webkit-user-drag:none;-webkit-user-select:none;user-select:none;}
+.dcar{position:relative;z-index:1;flex:none;height:400px;margin-top:52px;display:flex;gap:10px;margin-left:-20px;margin-right:-20px;padding:0 20px 0 40px;}
 .dtile{position:relative;flex:0 0 auto;height:100%;aspect-ratio:205/444;scroll-snap-align:start;border:none;padding:0;margin:0;cursor:pointer;border-radius:var(--r-lg);overflow:hidden;background-size:cover;background-position:center;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);}
 .dtile-vid{width:100%;height:100%;object-fit:cover;display:block;}
 .dh-meta{position:relative;z-index:1;flex:none;padding:14px 20px 18px;display:flex;flex-direction:column;gap:0;}
@@ -1020,8 +1023,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   /* ===== Collections — horizontal album row ===== */
   .curators-sec{margin:18px 0 4px;}
   .cs-h{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:0 2px 12px;}
-  .cs-scroll{display:flex;gap:12px;overflow-x:auto;touch-action:pan-x;overscroll-behavior-x:contain;scroll-snap-type:x proximity;margin:0 -40px;padding:0 40px;scroll-padding-left:40px;}
-  .cs-scroll::-webkit-scrollbar{display:none;}
+  .cs-scroll{display:flex;gap:12px;margin:0 -40px;padding:0 40px;}
   /* The trend-page collection card uses the SAME form as the profile collection placeholder:
      the card is a flex column, the cover reuses .cprof-cc-cover (iPhone 17 Pro 1206/2622,
      18px corners), and the title/meta render as text BELOW the cover via .cprof-cc-t/-sub. */
@@ -1102,7 +1104,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 
   /* ===== Collection screen ===== */
   /* Timeline + Posts */
-  #s-timeline .scrollarea,#s-saved .scrollarea,#s-stub .scrollarea,#s-forecasts .scrollarea,#s-chart .scrollarea,#s-trendconvo .scrollarea,#s-pending .scrollarea{padding-top:var(--hdr);}
+  #s-timeline .scrollarea,#s-saved .scrollarea,#s-stub .scrollarea,#s-forecasts .scrollarea,#s-chart .scrollarea,#s-trendposts .scrollarea,#s-pending .scrollarea{padding-top:var(--hdr);}
   .stub-area{display:flex;align-items:center;justify-content:center;}
   .stub-box{text-align:center;max-width:280px;}
   .stub-t{font-size:20px;font-weight:800;letter-spacing:-.02em;}
@@ -1596,10 +1598,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
      scroll past the page margin without a hard "black border" clip at the margin */
   #ex-list .ex-car-wrap{position:relative;flex:0 0 auto;width:calc(50% + 20px);height:216px;
     margin-left:-20px;}
-  #ex-list .ex-car{display:flex;gap:8px;height:100%;overflow-x:auto;overflow-y:hidden;touch-action:pan-x;overscroll-behavior-x:contain;
-    scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none;
-    padding-left:20px;scroll-padding-left:20px;}
-  #ex-list .ex-car::-webkit-scrollbar{display:none;}
+  #ex-list .ex-car{display:flex;gap:8px;height:100%;overflow-y:hidden;padding-left:20px;}
   #ex-list .ex-tile{position:relative;flex:none;height:100%;aspect-ratio:205/444;border-radius:var(--r-lg);overflow:hidden;
     box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);background-size:cover;background-position:center;scroll-snap-align:start;}
   /* fade on the right edge of the carousel — narrow (≤1/3) and smoothly blends into bg */

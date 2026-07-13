@@ -279,11 +279,43 @@ async function main() {
     assert(afterScroll.scrollTop > 300, `vertical scroll should move the feed, got ${afterScroll.scrollTop}`);
     assert(afterScroll.mountedVideos <= 4, `too many videos mounted after scroll: ${afterScroll.mountedVideos}`);
 
-    // tapping a trend's metadata opens its detail page, then back returns to the feed
+    // Tapping a trend's metadata opens its detail page. Its media, Collections, and Related
+    // rails should all use hidden-overflow pointer dragging, with no accidental card opens.
     await evaluate(cdp, sessionId, `document.querySelector('#feed .topic [data-go]').click()`);
     await waitFor(cdp, sessionId, `document.getElementById('s-detail').classList.contains('active')`, 'trend detail from card tap');
+    await waitFor(cdp, sessionId, `document.querySelectorAll('#d-car .dtile').length > 1 && document.querySelectorAll('#d-colls .cs-card').length > 1 && Boolean(document.querySelector('#d-relfeed .rel-scroll'))`, 'trend detail rails');
+    const detailBefore = await readDetailRailState(cdp, sessionId);
+    assert(detailBefore.postsHeading === 'Posts', `trend detail discussion heading should be Posts, got ${detailBefore.postsHeading}`);
+    assert(detailBefore.composeLabel === 'Create a post', `trend detail compose action should use post language, got ${detailBefore.composeLabel}`);
+    assert(!detailBefore.hasConversationCopy, 'product UI should not display Conversations copy');
+    for (const rail of detailBefore.rails) {
+      assert(rail.itemCount > 1, `${rail.name} should contain multiple cards`);
+      assert(rail.scrollWidth > rail.clientWidth, `${rail.name} should have draggable overflow`);
+      assert(rail.overflowX === 'hidden', `${rail.name} should hide native horizontal overflow, got ${rail.overflowX}`);
+      assert(rail.touchAction === 'pan-y', `${rail.name} should preserve vertical page panning, got ${rail.touchAction}`);
+    }
+    for (const selector of ['#d-car', '#d-colls', '#d-relfeed .rel-scroll']) {
+      const dragResult = await dragRail(cdp, sessionId, selector);
+      assert(dragResult.scrollLeft > 20, `${selector} should move with click-and-drag, got scrollLeft ${dragResult.scrollLeft}`);
+      assert(dragResult.activeScreen === 's-detail', `${selector} drag should stay on the detail screen, got ${dragResult.activeScreen}`);
+    }
     await evaluate(cdp, sessionId, `document.getElementById('det-back').click()`);
     await waitFor(cdp, sessionId, `document.getElementById('s-feed').classList.contains('active')`, 'feed return from detail');
+
+    // Search result media strips are the other live card/media rail with the same interaction.
+    await evaluate(cdp, sessionId, `document.querySelector('[data-tab="explore"]').click()`);
+    await waitFor(cdp, sessionId, `document.getElementById('s-explore').classList.contains('active') && Boolean(document.querySelector('#ex-list .ex-car'))`, 'search media rail');
+    const exploreRail = await evaluate(cdp, sessionId, `(() => {
+      const el = document.querySelector('#ex-list .ex-car');
+      const style = getComputedStyle(el);
+      return { overflowX: style.overflowX, touchAction: style.touchAction, scrollWidth: el.scrollWidth, clientWidth: el.clientWidth };
+    })()`);
+    assert(exploreRail.scrollWidth > exploreRail.clientWidth, 'search media rail should have draggable overflow');
+    assert(exploreRail.overflowX === 'hidden', `search media rail should hide native horizontal overflow, got ${exploreRail.overflowX}`);
+    assert(exploreRail.touchAction === 'pan-y', `search media rail should preserve vertical page panning, got ${exploreRail.touchAction}`);
+    const exploreDrag = await dragRail(cdp, sessionId, '#ex-list .ex-car');
+    assert(exploreDrag.scrollLeft > 20, `search media rail should move with click-and-drag, got scrollLeft ${exploreDrag.scrollLeft}`);
+    assert(exploreDrag.activeScreen === 's-explore', `search media drag should stay on Search, got ${exploreDrag.activeScreen}`);
 
     await evaluate(cdp, sessionId, `document.querySelector('[data-tab="posts"]').click()`);
     await waitFor(cdp, sessionId, `document.getElementById('s-posts').classList.contains('active')`, 'posts screen');
@@ -406,6 +438,55 @@ async function readCubeState(cdp, sessionId) {
       trackBackground: getComputedStyle(track).backgroundColor,
     };
   })()`);
+}
+
+async function readDetailRailState(cdp, sessionId) {
+  return evaluate(cdp, sessionId, `(() => {
+    const specs = [['Hero', '#d-car'], ['Collections', '#d-colls'], ['Related', '#d-relfeed .rel-scroll']];
+    return {
+      postsHeading: document.querySelector('#sec-posts .tsec-h span').textContent.trim(),
+      composeLabel: document.getElementById('dp-compose').textContent.trim(),
+      hasConversationCopy: document.body.textContent.includes('Conversations'),
+      rails: specs.map(([name, selector]) => {
+        const el = document.querySelector(selector);
+        const style = getComputedStyle(el);
+        return {
+          name,
+          itemCount: el.children.length,
+          scrollWidth: Math.round(el.scrollWidth),
+          clientWidth: Math.round(el.clientWidth),
+          overflowX: style.overflowX,
+          touchAction: style.touchAction,
+        };
+      }),
+    };
+  })()`);
+}
+
+async function dragRail(cdp, sessionId, selector) {
+  const point = await evaluate(cdp, sessionId, `(async () => {
+    const el = document.querySelector(${JSON.stringify(selector)});
+    el.scrollIntoView({ block: 'center' });
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const box = el.getBoundingClientRect();
+    return {
+      startX: Math.min(innerWidth - 35, box.right - 35),
+      endX: Math.max(35, box.left + 55),
+      y: Math.max(80, Math.min(innerHeight - 100, box.top + Math.min(box.height / 2, 150))),
+    };
+  })()`);
+  const end = await holdMouseDrag(cdp, sessionId, [
+    [point.startX, point.y],
+    [point.startX - (point.startX - point.endX) * 0.35, point.y],
+    [point.startX - (point.startX - point.endX) * 0.7, point.y],
+    [point.endX, point.y],
+  ]);
+  await releaseMouseDrag(cdp, sessionId, end);
+  await sleep(500);
+  return evaluate(cdp, sessionId, `(() => ({
+    scrollLeft: Math.round(document.querySelector(${JSON.stringify(selector)}).scrollLeft),
+    activeScreen: document.querySelector('.screen.active').id,
+  }))()`);
 }
 
 async function readComposerState(cdp, sessionId) {

@@ -26,6 +26,12 @@ assert(devServerJs.includes("const publicFiles = new Set(['index.html', 'scripts
 assert(devServerJs.includes("const publicDirectories = ['media/', 'styles/']"), 'development server should expose only required asset directories');
 assert(devServerJs.includes('if (!isPublicAsset(file))'), 'development server should block internal repository files');
 assert(css.includes('touch-action:pan-y'), 'feed carousel must preserve native vertical panning');
+assert(css.includes('.dcar{') && css.includes('.cs-scroll{') && appJs.includes('function wireDragRail(el)'), 'trend detail rails must use the shared drag controller');
+assert(!css.match(/\.dcar\{[^}]*overflow-x:auto/) && !css.match(/\.cs-scroll\{[^}]*overflow-x:auto/), 'trend detail rails must not expose native horizontal overflow');
+assert(css.includes('.dcar,.cs-scroll,#ex-list .ex-car{overflow-x:hidden;touch-action:pan-y'), 'media and card rails should share hidden overflow while preserving vertical page panning');
+assert(!css.match(/#ex-list \.ex-car\{[^}]*overflow-x:auto/) && appJs.includes("list.querySelectorAll('.ex-car').forEach(wireDragRail)"), 'search media rails should use the shared drag controller');
+assert(!html.includes('Conversations') && !html.includes('conversation'), 'product-facing trend discussion copy should use Posts');
+assert(!/convo/i.test(html + appJs + css), 'legacy conversation screen names should use Posts terminology');
 assert(css.includes('transform-style:preserve-3d'), 'feed carousel should keep a 3D transform context');
 assert(!css.includes('.dots{') && !appJs.includes('data-dots') && !appJs.includes('class="dots"'), 'feed carousel top indicators should not render');
 assert(!appJs.includes('proMode') && !appJs.includes('chartHTML(') && !appJs.includes('function tickCharts'), 'Pro mode and the candlestick feed should be fully removed (single surface)');
