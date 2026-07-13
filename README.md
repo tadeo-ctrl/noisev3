@@ -33,7 +33,7 @@ Keep the Mac and phone on the same Wi-Fi network, then expose the development se
 npm run dev -- --host 0.0.0.0
 ```
 
-Find the Mac's Wi-Fi address with `ipconfig getifaddr en1`, then open `http://<wifi-address>:4173` in Safari on the phone. The address can change when the Mac reconnects to Wi-Fi.
+Find the Mac's active local-network address with `ipconfig getifaddr "$(route -n get default | awk '/interface:/{print $2}')"`, then open `http://<local-address>:4173` in Safari on the phone. The address can change when the Mac reconnects to the network.
 
 If the page does not load, check that neither device is using a guest network or VPN and allow incoming connections for Node if macOS asks. Plain HTTP is sufficient for this prototype; browser features that require a secure context, such as camera or microphone access, will require a local HTTPS setup.
 
