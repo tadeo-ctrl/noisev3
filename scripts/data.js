@@ -632,7 +632,7 @@ var POSTS=[
   {id:"vibecoding",u:"@shipfast",t:"2d",text:"shipped a whole app this weekend without writing a function by hand. wild times.",up:13,c:5}
 ];
 var PROFILES={
-  "@you":{tag:"Spotting culture before it peaks.",followers:12,following:8,domains:"Culture · Tech",leads:["vibecoding","coinbase","looksmaxxing"],active:["claude","runclubs"],calls:4,hit:0.5,col:"#aab2c8"},
+  "@you":{name:"Tadeo",tag:"Spotting culture before it peaks.",followers:12,following:8,domains:"Culture · Tech",leads:["vibecoding","coinbase","looksmaxxing"],active:["claude","runclubs"],calls:4,hit:0.5,col:"#aab2c8",img:"media/profile/you.png"},
   "@eloquent":{tag:"Reads the future through hardware.",followers:1310,domains:"Robotics · Tech",leads:["humanoidrobots"],active:["agi","wearables"]},
   "@jerry":{tag:"Studies why we can't put the phone down.",followers:870,domains:"Internet · Design",leads:["dopaminesites"],active:["attentioneconomy"]},
   "@dumb":{tag:"Solders old plastic back to life.",followers:540,domains:"Hardware · Retro",leads:["gameboymod"],active:["analog"]},

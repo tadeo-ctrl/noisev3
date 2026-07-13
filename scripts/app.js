@@ -303,7 +303,7 @@
     var right=Math.round(cur.hit*cur.calls);
     var fList=trendFollowedCurators(t.id), follow=fList.length;
     var faces='';
-    for(var fi=0;fi<Math.min(follow,3);fi++){faces+='<i style="background:'+(avatarColor(fList[fi],t.id)||AVCOL[(fi+t.deg)%AVCOL.length])+'"></i>';}
+    for(var fi=0;fi<Math.min(follow,3);fi++){faces+='<i style="'+avatarStyle(fList[fi],t.id)+'"></i>';}
     var hint='';
     var sentLabel=(t.up?'▲ ':'▼ ')+t.sent+'%';
     // No username on the feed — the trend stands on its own. Only the curator count remains.
@@ -1502,7 +1502,7 @@
     if(dsave){dsave.setAttribute('data-fav',id);dsave.classList.toggle('on',isFav(id));}
     var dsoc=document.getElementById('d-social');
     if(t.kind==='niche'){var dfList=trendFollowedCurators(id),dfollow=dfList.length,df='';
-      for(var dk=0;dk<Math.min(dfollow,3);dk++){df+='<i style="background:'+(avatarColor(dfList[dk],id)||AVCOL[(dk+t.deg)%AVCOL.length])+'"></i>';}
+      for(var dk=0;dk<Math.min(dfollow,3);dk++){df+='<i style="'+avatarStyle(dfList[dk],id)+'"></i>';}
       dsoc.innerHTML='<b>'+t.fc+'</b> curators'+(dfollow>0?'<span class="nh-follow"><span class="dh-dot">·</span><span class="facepile">'+df+'</span><b>'+dfollow+'</b> you follow</span>':'');
       dsoc.style.display='';
     }else{dsoc.style.display='none';dsoc.innerHTML='';}
@@ -1730,13 +1730,11 @@
     currentProfile=handle;
     var self=(handle==='@you');
     var lead=(p.leads&&p.leads.length)?p.leads[0]:null;
-    var c=lead?curOf(lead):{col:p.col||'#9aa6c9'};
-    var col=self?(p.col||'#aab2c8'):(c.col||p.col||'#9aa6c9');
-    document.getElementById('pf-av').style.background=col;
-    var tav=document.getElementById('tab-av'); if(tav)tav.style.background=col;
+    paintAvatar(document.getElementById('pf-av'),handle,lead);
+    paintAvatar(document.getElementById('tab-av'),'@you');
     document.getElementById('pf-name').textContent=self?(p.name||'Tadeo'):handle;
     var pbn=document.getElementById('pfbar-name'); if(pbn)pbn.textContent=self?'@tadeov01':handle;
-    var pba=document.getElementById('pfbar-av'); if(pba)pba.style.background=col;
+    paintAvatar(document.getElementById('pfbar-av'),handle,lead);
     var pbe=document.getElementById('pfbar-edit'); if(pbe)pbe.style.display=self?'':'none';
     var hEl=document.getElementById('pf-handle');
     hEl.textContent=self?'@tadeov01':(p.domains||'');
@@ -1779,10 +1777,10 @@
   function toggleFollow(h){ if(myFollowing.has(h))myFollowing.delete(h); else myFollowing.add(h);
     if(currentProfile==='@you'){var pf=document.getElementById('pf-following'); if(pf)pf.textContent=fmt(myFollowing.size);} }
   function userRowHTML(handle){var p=PROFILES[handle];if(!p)return '';
-    var lead=(p.leads&&p.leads.length)?p.leads[0]:null, c=lead?curOf(lead):{col:p.col||'#9aa6c9',hit:p.hit||0};
+    var lead=(p.leads&&p.leads.length)?p.leads[0]:null;
     var chk=(p.followers>=1000)?'<span class="ucheck"><svg viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></svg></span>':'';
     var fol=isFollowing(handle);
-    return '<div class="urow" data-user="'+handle+'"><span class="uav" style="background:'+c.col+'"></span>'+
+    return '<div class="urow" data-user="'+handle+'"><span class="uav" style="'+avatarStyle(handle,lead)+'"></span>'+
       '<div class="uid"><div class="unm">'+handle+chk+'</div><div class="usub">'+fmt(p.followers)+' followers</div></div>'+
       '<button class="cb-follow sm'+(fol?' on':'')+'" data-followtoggle="'+handle+'">'+(fol?'Following':'Follow')+'</button></div>';}
   // @you's lists are the real follow store (so counts match). Other profiles show a deterministic
@@ -1825,7 +1823,35 @@
   };
   var postdetailReturn='posts', curPost=0, cmtVotes={}, cmtCounter=6, cmtSort='best', replyTo=null, cmtCollapsed={};
   var CSORT_LABEL={best:'Best',top:'Top',new:'New'};
-  function avatarColor(handle,fallbackTrend){var p=PROFILES[handle];var lead=(p&&p.leads&&p.leads.length)?p.leads[0]:fallbackTrend;return curOf(lead).col;}
+  function avatarColor(handle,fallbackTrend){var p=PROFILES[handle];if(p&&p.col)return p.col;var lead=(p&&p.leads&&p.leads.length)?p.leads[0]:fallbackTrend;return curOf(lead).col;}
+  function safeAvatarImage(src){
+    src=String(src||'');
+    if(/^media\/[A-Za-z0-9_./-]+$/.test(src)&&src.indexOf('..')<0)return src;
+    if(/^data:image\/(?:png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=]+$/i.test(src))return src;
+    return '';
+  }
+  function avatarImage(handle){var p=PROFILES[handle];return safeAvatarImage(p&&p.img);}
+  function avatarVisual(handle,fallbackTrend,imgOverride,colOverride){
+    var img=safeAvatarImage(imgOverride===undefined?avatarImage(handle):imgOverride);
+    var col=colOverride||avatarColor(handle,fallbackTrend)||'#aab2c8';
+    return {img:img,col:col};
+  }
+  function avatarStyle(handle,fallbackTrend,imgOverride,colOverride){
+    var av=avatarVisual(handle,fallbackTrend,imgOverride,colOverride);
+    return 'background-color:'+av.col+';background-image:'+(av.img?'url('+av.img+')':'none')+';background-size:cover;background-position:center';
+  }
+  function paintAvatar(el,handle,fallbackTrend,imgOverride,colOverride){
+    if(!el)return;
+    var av=avatarVisual(handle,fallbackTrend,imgOverride,colOverride);
+    el.style.backgroundColor=av.col;
+    el.style.backgroundImage=av.img?'url("'+av.img+'")':'none';
+    el.style.backgroundSize='cover';
+    el.style.backgroundPosition='center';
+  }
+  function paintOwnAvatarChrome(){
+    paintAvatar(document.getElementById('tab-av'),'@you');
+    paintAvatar(document.getElementById('drawer-av'),'@you');
+  }
   function cScore(n){var v=cmtVotes[n.id]||'';return n.up+(v==='up'?1:0)-(v==='down'?1:0);}
   function sortNodes(arr){var a=arr.slice();a.sort(function(x,y){
     if(cmtSort==='new')return timeVal(x.t)-timeVal(y.t);
@@ -1848,7 +1874,7 @@
           '<div class="cmt-children">'+sortNodes(node.replies).map(commentNodeHTML).join('')+'</div></div>';
       }
     }
-    return '<div class="cmt"><span class="cav" data-user="'+node.u+'" style="background:'+avatarColor(node.u,POSTS[curPost].id)+'"></span>'+
+    return '<div class="cmt"><span class="cav" data-user="'+node.u+'" style="'+avatarStyle(node.u,POSTS[curPost].id)+'"></span>'+
       '<div class="cmain"><div class="ctop"><b>'+node.u+'</b><span class="ubadges">'+badgeRow(node.u,3)+'</span> · '+node.t+(node.t==='now'?'':' ago')+'</div>'+
       '<div class="ctext">'+node.text+'</div>'+
       '<div class="cmt-react">'+
@@ -2625,7 +2651,7 @@
   var IC_TREND='<svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 7-7M21 8v5M21 8h-5"/></svg>';
   function renderNotifList(){
     document.getElementById('notif-list').innerHTML=NOTIFS.map(function(n,i){
-      var av=n.av?('<span class="nf-av" style="background:'+avatarColor(n.av,Object.keys(T)[0])+'"></span>')
+      var av=n.av?('<span class="nf-av" style="'+avatarStyle(n.av,Object.keys(T)[0])+'"></span>')
         :('<span class="nf-av" style="background:'+n.iconbg+'">'+(n.icon==='check'?IC_CHECK:IC_TREND)+'</span>');
       return '<div class="notif'+(n.unread?' unread':'')+'" data-notif="'+i+'">'+av+'<div class="nf-main"><div class="nf-text">'+n.text+'</div><div class="nf-time">'+n.time+' ago</div></div>'+(n.unread?'<span class="nf-dot"></span>':'')+'</div>';
     }).join('')||'<div class="stub-d" style="padding:20px 2px;">No notifications yet.</div>';
@@ -2641,16 +2667,32 @@
 
   // ===== Edit profile (avatar / name / bio) =====
   var MY_SW=["#aab2c8","#E0573A","#3FA66A","#9B6BFF","#E48FC0","#36617A","#F2B33D","#19C2C2"];
+  var editAvatarImg='',editAvatarCol='#aab2c8';
   function openEdit(){var p=PROFILES['@you'];
-    document.getElementById('edit-av').style.background=p.col;
-    document.getElementById('edit-name').value=p.name||'@you';
+    editAvatarImg=avatarImage('@you');editAvatarCol=p.col||'#aab2c8';
+    paintAvatar(document.getElementById('edit-av'),'@you',null,editAvatarImg,editAvatarCol);
+    document.getElementById('edit-name').value=p.name||'Tadeo';
     document.getElementById('edit-bio').value=p.tag;
-    document.getElementById('edit-sw').innerHTML=MY_SW.map(function(c){return '<span class="sw'+(c===p.col?' on':'')+'" data-sw="'+c+'" style="background:'+c+'"></span>';}).join('');
+    document.getElementById('edit-sw').innerHTML=MY_SW.map(function(c){var on=!editAvatarImg&&c===editAvatarCol;return '<button type="button" class="sw'+(on?' on':'')+'" data-sw="'+c+'" style="background:'+c+'" aria-label="Use '+c+' avatar color" aria-pressed="'+(on?'true':'false')+'"></button>';}).join('');
     subReturn=currentScreenKey();show('editprofile');}
+  function uploadAvatar(file){
+    if(!file)return;
+    if(!/^(image\/png|image\/jpeg|image\/webp|image\/gif)$/i.test(file.type||'')){showToast('Choose a PNG, JPG, WebP, or GIF');return;}
+    if(file.size>5*1024*1024){showToast('Choose an image under 5 MB');return;}
+    var reader=new FileReader();
+    reader.onload=function(){var img=safeAvatarImage(reader.result);if(!img){showToast('Could not use that image');return;}
+      editAvatarImg=img;
+      document.querySelectorAll('#edit-sw .sw').forEach(function(x){x.classList.remove('on');x.setAttribute('aria-pressed','false');});
+      paintAvatar(document.getElementById('edit-av'),'@you',null,editAvatarImg,editAvatarCol);
+    };
+    reader.onerror=function(){showToast('Could not read that image');};
+    reader.readAsDataURL(file);
+  }
   function saveEdit(){var p=PROFILES['@you'];
     var nm=(document.getElementById('edit-name').value||'').trim();
-    p.name=nm||'@you';p.tag=(document.getElementById('edit-bio').value||'').trim()||'Just getting started on NOISE.';
-    var sel=document.querySelector('#edit-sw .sw.on');if(sel)p.col=sel.getAttribute('data-sw');
+    p.name=nm||'Tadeo';p.tag=(document.getElementById('edit-bio').value||'').trim()||'Just getting started on NOISE.';
+    p.col=editAvatarCol;if(editAvatarImg)p.img=editAvatarImg;else delete p.img;
+    paintOwnAvatarChrome();
     showToast('Profile saved');openProfile('@you');}
 
   // ===== Help FAQ =====
@@ -2703,7 +2745,7 @@
     var p=POSTS[pi], pos=authorPos(p.u,id);
     var posIco=pos?'<span class="dp-pos '+(pos==='rise'?'up':'dn')+'" aria-label="'+(pos==='rise'?'Holding Rise':'Holding Cool')+'">'+(pos==='rise'?'▲':'▼')+'</span>':'';
     return '<button class="dp-post" data-tpost="'+pi+'">'+
-      '<span class="dp-av" style="background:'+avatarColor(p.u,id)+'"></span>'+
+      '<span class="dp-av" style="'+avatarStyle(p.u,id)+'"></span>'+
       '<span class="dp-main">'+
         '<span class="dp-top"><b class="dp-user">'+p.u+'</b>'+posIco+'<span class="dp-dot">·</span><span class="dp-time">'+p.t+'</span></span>'+
         '<span class="dp-text">'+p.text+'</span>'+
@@ -2890,7 +2932,7 @@
     return '<div class="post" data-post="'+pid+'">'+
       '<span class="post-media" data-go-trend="'+p.id+'"'+pvs+' style="background-image:'+(t.img?'url('+t.img+'),':'')+'linear-gradient(150deg,'+t.theme[0]+','+t.theme[1]+' 55%,'+t.theme[2]+');background-size:cover;background-position:center"></span>'+
       '<div class="post-main">'+
-        '<div class="post-top"><span class="post-av" data-user="'+p.u+'" style="background:'+avatarColor(p.u,p.id)+'"></span>'+
+        '<div class="post-top"><span class="post-av" data-user="'+p.u+'" style="'+avatarStyle(p.u,p.id)+'"></span>'+
           '<span class="post-trend" data-go-trend="'+p.id+'">'+t.name+'</span>'+
           '<span class="post-deg" data-go-trend="'+p.id+'">'+t.deg+'°</span><span class="post-sep">·</span>'+
           '<span class="post-u" data-user="'+p.u+'">'+p.u+'</span><span class="ubadges">'+badgeRow(p.u,3)+'</span><span class="post-sep">·</span><span class="post-time">'+p.t+' ago</span></div>'+
@@ -2957,6 +2999,7 @@
   var ctTitle=document.getElementById('ct-title'); if(ctTitle)ctTitle.addEventListener('input',ctUpdatePublish);
   var ctDesc=document.getElementById('ct-desc'); if(ctDesc)ctDesc.addEventListener('input',ctUpdatePublish);
   var ctFile=document.getElementById('ct-file'); if(ctFile)ctFile.addEventListener('change',function(){ctAddFiles(this.files);this.value='';});
+  var editAvatarInput=document.getElementById('edit-avatar-input'); if(editAvatarInput)editAvatarInput.addEventListener('change',function(){uploadAvatar(this.files&&this.files[0]);this.value='';});
 
   document.addEventListener('click',function(e){
     if(e.target.closest('#prof-back')||e.target.closest('#set-back')||e.target.closest('#saved-back')||e.target.closest('#stub-back')||e.target.closest('#ul-back')||e.target.closest('#pd-back')||e.target.closest('#det-back')||e.target.closest('#notif-back')||e.target.closest('#edit-back')||e.target.closest('#sec-back')||e.target.closest('#help-back')||e.target.closest('#inv-back')||e.target.closest('#sig-back')||e.target.closest('#fc-back')||e.target.closest('#tc-back')||e.target.closest('#pend-back')){goBack(); return;}
@@ -2980,7 +3023,8 @@
     var art=e.target.closest('[data-art]'); if(art){openArticle(JSON.parse(decodeURIComponent(art.getAttribute('data-art')))); return;}
     var nfr=e.target.closest('[data-notif]'); if(nfr){notifGo(+nfr.getAttribute('data-notif')); return;}
     var fq=e.target.closest('.faq-q'); if(fq){fq.parentElement.classList.toggle('open'); return;}
-    var esw=e.target.closest('[data-sw]'); if(esw){document.querySelectorAll('#edit-sw .sw').forEach(function(x){x.classList.remove('on');});esw.classList.add('on');document.getElementById('edit-av').style.background=esw.getAttribute('data-sw'); return;}
+    var eav=e.target.closest('#edit-avbtn'); if(eav){document.getElementById('edit-avatar-input').click(); return;}
+    var esw=e.target.closest('[data-sw]'); if(esw){editAvatarCol=esw.getAttribute('data-sw');editAvatarImg='';document.querySelectorAll('#edit-sw .sw').forEach(function(x){var on=x===esw;x.classList.toggle('on',on);x.setAttribute('aria-pressed',on?'true':'false');});paintAvatar(document.getElementById('edit-av'),'@you',null,'',editAvatarCol); return;}
     var esv=e.target.closest('#edit-save'); if(esv){saveEdit(); return;}
     var icp=e.target.closest('#inv-copy'); if(icp){showToast('Link copied'); return;}
     var ish=e.target.closest('#inv-share'); if(ish){showToast('Share sheet (demo)'); return;}
@@ -3476,8 +3520,8 @@
   }
 
   renderFeed('all');
-  // Seed the Profile tab avatar with your own palette.
-  (function(){var tav=document.getElementById('tab-av');if(tav)tav.style.background=(PROFILES['@you']&&PROFILES['@you'].col)||'#aab2c8';})();
+  // Seed the account chrome with your own avatar image (or its selected colour fallback).
+  paintOwnAvatarChrome();
   // Match the phone to Safari's true visible area (kills the black bars; updates as toolbars resize)
   // ===== Pull-to-refresh (posts + feed) =====
   function attachPTR(scrollEl, ptrEl, onRefresh){

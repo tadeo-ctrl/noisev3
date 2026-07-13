@@ -470,7 +470,13 @@
         <button class="backbtn" id="edit-back" aria-label="Back"><svg class="bkic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
         <div class="scrollarea">
           <div class="shead"><h1>Edit profile</h1></div>
-          <div class="edit-avrow"><span class="prof-av" id="edit-av"></span><div class="edit-sw" id="edit-sw"></div></div>
+          <div class="edit-avrow">
+            <button class="edit-avbtn" id="edit-avbtn" type="button" aria-label="Upload profile image">
+              <span class="prof-av" id="edit-av" aria-hidden="true"></span>
+            </button>
+            <input id="edit-avatar-input" type="file" accept=".png,.jpg,.jpeg,.webp,.gif,image/png,image/jpeg,image/webp,image/gif" hidden>
+            <div class="edit-palette"><div class="edit-lbl">Avatar color</div><div class="edit-sw" id="edit-sw"></div></div>
+          </div>
           <div class="edit-field"><div class="edit-lbl">Name</div><input id="edit-name" class="edit-input" type="text" maxlength="24"></div>
           <div class="edit-field"><div class="edit-lbl">Bio</div><textarea id="edit-bio" class="edit-input edit-area" maxlength="120" rows="3"></textarea></div>
           <button class="cta-place" id="edit-save">Save</button>
@@ -722,7 +728,7 @@
     <div class="scrim" id="drawer-scrim"></div>
     <aside class="drawer" id="drawer" aria-label="Account menu">
       <div class="dr-head" data-user="@you" role="button">
-        <span class="dr-av"></span>
+        <span class="dr-av" id="drawer-av"></span>
         <div class="dr-id"><div class="dr-name">@you</div><div class="dr-sub">Unranked · <span class="dot">◇</span> <span data-bal>500</span> credits</div></div>
       </div>
       <div class="dr-list">
