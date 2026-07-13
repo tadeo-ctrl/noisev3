@@ -1439,7 +1439,11 @@
     var r=document.getElementById(railId); if(r){releaseMediaIn(r);r.innerHTML=data.html||'';refreshActiveMedia(r);}
     var c=document.getElementById(countId); if(c)c.textContent=data.count;
     var tb=document.querySelector('#pf-tabs [data-pftab-sec="'+secId+'"]');
-    if(tb)tb.style.display=(data.count>0||keep)?'':'none';   // empty sections lose their tab
+    // Curations = trends you created. A user can't create trends, so the tab never applies to
+    // them. Gated HERE (not in applyRole) because this runs on every profile render and would
+    // otherwise put the tab straight back after a reload.
+    var curatorOnly=(secId==='pf-sec-curations'&&!IS_CURATOR);
+    if(tb)tb.style.display=(!curatorOnly&&(data.count>0||keep))?'':'none';   // empty sections lose their tab
   }
   // Profile content is tabbed - one pane at a time keeps the page quiet.
   var pfTab='curations';
@@ -2111,9 +2115,39 @@
   // Posts are text only — no user-uploaded pictures.
   POSTS.forEach(function(pp){ delete pp.pic; });
   }
-  // ONE noun: collection. IS_CURATOR gates whether Public (= tradable) is offered at all;
-  // a normal user's collections are private, full stop.
+  // ===== ROLE =====
+  // Curator  : can create trends, review submissions, and make public (= tradable) collections.
+  // User     : browses, signals, posts in conversations, and keeps PRIVATE collections only.
+  // Flip it in Settings > "Browse as a user". Persisted, because on a phone a stray reload
+  // would otherwise snap the demo silently back to Curator.
+  var ROLE_KEY='noise.role';
   var IS_CURATOR=true;
+  try{ IS_CURATOR=(localStorage.getItem(ROLE_KEY)!=='user'); }catch(e){}
+  function setRole(curator){
+    IS_CURATOR=!!curator;
+    try{ localStorage.setItem(ROLE_KEY, IS_CURATOR?'curator':'user'); }catch(e){}
+    applyRole();
+  }
+  // Everything role-dependent is re-derived here, so a toggle never needs a reload.
+  function applyRole(){
+    // ＋ : a curator gets the chooser (Trend / Post / Review); a user posts, full stop.
+    var fc=document.getElementById('feed-create');
+    if(fc)fc.setAttribute('aria-label', IS_CURATOR?'Create':'New post');
+    // Profile: no Curations tab for a user — they can't create trends, so it would always be empty.
+    var cu=document.querySelector('#pf-tabs [data-pftab="curations"]');
+    if(cu)cu.style.display=IS_CURATOR?'':'none';
+    if(!IS_CURATOR){
+      var pane=document.getElementById('pf-sec-curations');
+      if(pane&&!pane.hidden){ try{ pfSetTab('colls'); }catch(e){} }
+    }
+    // Settings switch reflects the current role.
+    var sw=document.getElementById('set-role');
+    if(sw)sw.setAttribute('aria-pressed', IS_CURATOR?'false':'true');
+    var note=document.getElementById('set-role-note');
+    if(note)note.textContent=IS_CURATOR
+      ? 'You are a curator: you can create trends, review submissions, and publish tradable collections.'
+      : 'You are a user: you can signal, post and keep private collections. Creating and reviewing trends is curator-only.';
+  }
   var NL_ADD='<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>';
   var NL_CHK='<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 6"/></svg>';
   function nlPrep(){   // shared reset of the screen inputs from the current nl state
@@ -2765,9 +2799,10 @@
       return;}
     var ult=e.target.closest('.ultab'); if(ult){ulKind=ult.getAttribute('data-ultab');renderUserList(); return;}
     var fab=e.target.closest('#post-fab'); if(fab){openCompose(); return;}   // Posts page + = new post, nothing else
-    var ccT=e.target.closest('#cc-trend'); if(ccT){closeAll(); openCreateTrend(); return;}
+    // Curator-only. Guarded here too, not just hidden — a user must never land on these screens.
+    var ccT=e.target.closest('#cc-trend'); if(ccT){if(!IS_CURATOR)return; closeAll(); openCreateTrend(); return;}
     var ccP=e.target.closest('#cc-post'); if(ccP){closeAll(); openCompose(); return;}
-    var ccR=e.target.closest('#cc-review'); if(ccR){closeAll(); openReview(); return;}
+    var ccR=e.target.closest('#cc-review'); if(ccR){if(!IS_CURATOR)return; closeAll(); openReview(); return;}
     var rvbk=e.target.closest('#rv-back'); if(rvbk){goBack(); return;}
     var rvp=e.target.closest('#rv-promote'); if(rvp){rvCommit('promote'); return;}
     var rvd=e.target.closest('#rv-discard'); if(rvd){rvCommit('discard'); return;}
@@ -2783,7 +2818,10 @@
     var ctub=e.target.closest('#ct-upload-btn'); if(ctub){var cf=document.getElementById('ct-file'); if(cf)cf.click(); return;}
     var ctrm=e.target.closest('#ct-uploads [data-ctrm]'); if(ctrm){ctRemoveUpload(+ctrm.getAttribute('data-ctrm')); return;}
     var ctpub=e.target.closest('#ct-publish'); if(ctpub){if(ctpub.getAttribute('data-disabled'))return; ctPublish(); return;}
-    var fcreate=e.target.closest('#feed-create'); if(fcreate){openCreateChooser(fcreate); return;}
+    // Curator gets the chooser (Trend / Post / Review). A user has only one thing to create,
+    // so skip the menu and open the post composer directly.
+    var fcreate=e.target.closest('#feed-create');
+    if(fcreate){ if(IS_CURATOR)openCreateChooser(fcreate); else openCompose(); return; }
     // Bell lives on the profile — in the expanded header and in the collapsed bar.
     var pnotif=e.target.closest('#prof-notif,#pfbar-notif'); if(pnotif){openNotif(); return;}
     var csl=e.target.closest('#cmp-select'); if(csl){var dd=document.getElementById('cmp-dd');dd.hidden=!dd.hidden;if(!dd.hidden){document.getElementById('cmp-search').focus();refreshActiveMedia(dd);}else{releaseMediaIn(dd);} return;}
@@ -2821,6 +2859,8 @@
       if(sw.id==='tpsl-on')document.getElementById('tpsl-fields').style.display=son?'':'none';
       if(sw.id==='nl-private')nl.vis=son?'private':'public';
       if(sw.id==='set-motion')document.body.classList.toggle('reduce-motion',son);   // app-wide reduced motion
+      // "Browse as a user" ON  => not a curator. Re-derives the whole UI, no reload needed.
+      if(sw.id==='set-role'){ setRole(!son); showToast(son?'Browsing as a user':'Browsing as a curator'); }
       return;}
     var vt=e.target.closest('.pr.vote'); if(vt){var pid=vt.getAttribute('data-pid'),d=vt.getAttribute('data-vote');postVotes[pid]=(postVotes[pid]===d)?'':d;renderPosts();if(currentScreenKey()==='postdetail')renderPostDetail();if(currentScreenKey()==='trendconvo')renderTrendConvo(); return;}
     var flw=e.target.closest('.cb-follow'); if(flw){if(flw.id==='pf-follow'&&flw.dataset.self==='1'){openEdit();return;}
@@ -3285,5 +3325,6 @@
   window.addEventListener('orientationchange',function(){setTimeout(setAppHeight,200);});
   if(window.visualViewport)window.visualViewport.addEventListener('resize',setAppHeight);
   updateBellDot();
-  window.addEventListener('load',function(){moveInd();moveSeg();setBal();kickVideos();updateBellDot();setAppHeight();syncFilterLabels();renderFilterSheets();syncPostsLabels();renderPostSheets();});setTimeout(function(){moveInd();moveSeg();setBal();setAppHeight();},60);
+  applyRole();   // honour the persisted role (Settings > Browse as a user) on first paint
+  window.addEventListener('load',function(){moveInd();moveSeg();setBal();kickVideos();updateBellDot();setAppHeight();syncFilterLabels();renderFilterSheets();syncPostsLabels();renderPostSheets();applyRole();});setTimeout(function(){moveInd();moveSeg();setBal();setAppHeight();},60);
 })();

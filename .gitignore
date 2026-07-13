@@ -25,3 +25,5 @@ react-native/
 # macOS
 .DS_Store
 **/.DS_Store
+
+scripts/_qa-role.mjs
