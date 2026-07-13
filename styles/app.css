@@ -1481,11 +1481,10 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   .pf-badge2.gold{color:var(--rel);background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.3);}
   .pf-badges:empty{margin:0;}
   /* ===== PROFILE — Cosmos-style ===== */
-  /* Bare glyphs — no circular button chrome. */
+  /* Profile header actions share the neutral secondary-CTA surface in a compact circle. */
   .cprof-icon{position:relative;width:40px;height:40px;flex:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
-    background:none;border:none;color:var(--paper);transition:opacity .15s,transform .12s;}
-  .cprof-icon:active{transform:scale(.9);opacity:.7;}
-  .cprof-icon svg{width:23px;height:23px;}
+    background:var(--secondary-cta-bg);border:none;border-radius:50%;color:#0A0A0A;transition:background var(--t),transform var(--t-fast);}
+  .cprof-icon:active{background:var(--secondary-cta-active-bg);transform:scale(.96);}
   .cprof-icon .bell-dot{top:5px;right:6px;background:var(--rel);border-color:var(--rel);}
   .cprof-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
   .cprof-headr{position:absolute;top:48px;right:var(--page-gutter);display:flex;align-items:center;gap:10px;}
