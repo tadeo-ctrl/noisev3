@@ -1636,7 +1636,7 @@
     if(!open.length)return {html:'<div class="cprof-rail-empty">No open signals yet.</div>',count:0};
     var cards=open.map(function(p){var idx=positions.indexOf(p),t=T[p.id],ahead=(p.dir==='rise')===t.up;
       return '<button class="cprof-cc" data-signal="'+idx+'"><span class="cprof-cc-cover" style="'+collCover(p.id)+'"></span>'+
-        '<span class="cprof-cc-t">'+t.name+'</span><span class="cprof-cc-sub">'+(p.dir==='rise'?'Rise ▲':'Cool ▼')+' · '+(ahead?'ahead':'behind')+'</span></button>';});
+        '<span class="cprof-cc-t">'+t.name+'</span><span class="cprof-cc-sub"><span class="cprof-cc-dir '+p.dir+'">'+(p.dir==='rise'?'Rise ▲':'Cool ▼')+'</span> · '+(ahead?'ahead':'behind')+'</span></button>';});
     return {html:cards.join(''),count:open.length};
   }
   // Kept for callers (e.g. resolvePos) — refreshes the Signals rail in place.
@@ -3295,7 +3295,7 @@
     return '<div class="pcard"><span class="pos-th" data-go-trend="'+p.id+'"'+(vcount(p.id)?clipAttrs(p.id,1,true):'')+' style="background-image:'+(t.img?'url('+t.img+'),':'')+'linear-gradient(135deg,'+t.theme[0]+','+t.theme[2]+')"></span><div class="pos-body" data-signal="'+idx+'"><div class="prow"><h3>'+t.name+'</h3><span class="dirchip '+p.dir+'">'+(p.dir==='rise'?'Rise ▲':'Cool ▼')+'</span></div>'+
       '<div class="pmeta">'+p.stake+' credits · '+((p.lev||1)>1?(p.lev+'× · '):'')+cond+' · wins ~'+fmt(p.profit!=null?p.profit:(p.payout-p.stake))+'</div>'+
       '<div class="pstate"><span class="when">'+(p.limit!=null?'<span class="pos-limit">limit @ '+p.limit+'°</span> · ':'')+(ahead?'currently ahead':'currently behind')+'</span>'+
-      '<button class="btn-resolve" data-resolve="'+idx+'">Resolve</button></div></div></div>';
+      '<button class="btn-resolve compact-secondary-cta" data-resolve="'+idx+'">Resolve</button></div></div></div>';
   }
   function renderForecasts(){
     var openStake=0;positions.forEach(function(p){if(p.status==='open')openStake+=p.stake;});

@@ -31,6 +31,7 @@
   --tabh:84px;
   --page-gutter:20px;
   --secondary-cta-bg:#EDEDED;
+  --secondary-cta-active-bg:#E4E4E4;
   --segmented-bg:var(--secondary-cta-bg);
   --segmented-active-bg:#DEDEDE;
   --segmented-active-border:1px solid rgba(0,0,0,.30);
@@ -272,22 +273,19 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 .dh-social .dh-dot{color:var(--faint);}
 .dh-social .facepile i{width:16px;height:16px;}
 .dh-user #d-user{cursor:pointer;}
-/* Trend-page Save (watchlist / binoculars) + Alert (bell): bare icons on the @handle line — no
-   container, no fill. Muted by default, white when active. Never touches the degree/sentiment row. */
+/* Trend-page save/share controls use the standard bare-action geometry: 40px control,
+   20px glyph, 1.8 stroke. Save fills only when active. */
 .dh-user{display:flex;align-items:center;justify-content:space-between;gap:12px;}
 .dh-actions{display:flex;align-items:center;gap:14px;flex:none;}
-.dh-act{width:26px;height:26px;flex:none;display:inline-flex;align-items:center;justify-content:center;
-  background:none;border:none;padding:0;color:var(--muted);cursor:pointer;
+.dh-act{width:40px;height:40px;flex:none;display:inline-flex;align-items:center;justify-content:center;
+  background:none;border:none;padding:0;color:var(--paper);cursor:pointer;
   -webkit-tap-highlight-color:transparent;transition:color .15s,transform .1s;}
 .dh-act:active{transform:scale(.9);}
-.dh-act svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.dh-act svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
 .dh-act.on{color:var(--paper);}
-/* Share sits on the degree line, right-aligned; a touch stronger than the muted meta icons. */
-.dh-share{width:34px;height:34px;color:var(--paper);}
-.dh-share svg{width:22px;height:22px;}
-/* Watchlisted: the whole star fills grey */
-#d-save.on{color:var(--muted);}
-#d-save.on svg{fill:currentColor;}
+/* Share sits on the degree line, right-aligned. Saved bookmarks use the same solid ink for
+   fill and outline, so the active state reads as one color rather than layered greys. */
+#d-save.on svg{fill:currentColor;stroke:currentColor;}
 /* ===== Create List (user, untradable) ===== */
 /* Board media stays at the compact 14px gallery edge; the header adds 12px so controls
    have a little more breathing room than the cards without affecting standard page gutters. */
@@ -354,9 +352,9 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 .ca-btn{width:64px;padding:11px 4px;border:none;background:none;cursor:pointer;color:rgba(0,0,0,.60);display:flex;flex-direction:column;align-items:center;gap:0;border-radius:var(--r-lg);font-family:inherit;font-size:0;transition:color .25s,background .15s;}
 .ca-btn:active{background:rgba(0,0,0,.06);}
 .ca-btn[hidden]{display:none;}
-.ca-btn svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.ca-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
 .ca-btn.on{color:#0A0A0A;}
-.ca-btn.on svg{fill:currentColor;}   /* saved bookmark fills in */
+.ca-btn.on svg{fill:currentColor;stroke:currentColor;}   /* saved bookmark is one solid color */
 /* Signal is bold white text in the center of the glass — no capsule behind it (ref screenshot) */
 /* metrics locked to the home tab bar: same 21px line, same 11px vertical padding — identical pill height */
 .ca-btn.ca-signal{width:auto;padding:11px 6px;margin:0 12px;background:none;color:#0A0A0A;
@@ -721,8 +719,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 .wl-v{font-size:26px;font-weight:800;color:var(--good);font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
 .wl-cond{font-size:13px;color:var(--muted);margin-top:4px;}
 .amt-adds{display:flex;gap:8px;margin:0 0 18px;}
-.amt-add{flex:1;background:rgba(0,0,0,.05);border:1px solid var(--glass-stroke);color:var(--paper);font-family:inherit;font-weight:700;font-size:14px;padding:11px 0;border-radius:var(--r-pill);cursor:pointer;transition:transform .12s,background .15s;}
-.amt-add:active{transform:scale(.95);background:rgba(0,0,0,.09);}
+.amt-add{flex:1;font-family:inherit;font-weight:700;font-size:14px;padding:11px 0;border-radius:var(--r-pill);cursor:pointer;}
 .amtinput:focus{outline:none;border-color:rgba(0,0,0,.55);background:rgba(0,0,0,.06);}
 .stakeinfo{font-size:12.5px;color:var(--muted);margin:0 2px 16px;font-variant-numeric:tabular-nums;}
 .stakeinfo b{color:var(--paper);font-weight:700;}
@@ -833,7 +830,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   .pcard.lost{opacity:.66;}
   .pstate{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(0,0,0,.08);font-variant-numeric:tabular-nums;}
   .pstate .when{font-size:12.5px;color:var(--muted);}
-  .btn-resolve{border:1px solid var(--glass-stroke);background:rgba(0,0,0,.05);color:var(--paper);font-family:inherit;font-weight:600;font-size:12.5px;padding:8px 14px;border-radius:var(--r-sm);cursor:pointer;white-space:nowrap;}
+  .btn-resolve{font-family:inherit;font-weight:600;font-size:12.5px;padding:8px 14px;border-radius:var(--r-sm);cursor:pointer;white-space:nowrap;}
 
   .res-tag{font-size:13.5px;font-weight:700;} .res-tag.won{color:var(--good);} .res-tag.lost{color:var(--cool);}
   /* ===== Signal (position) detail — trader view ===== */
@@ -1049,11 +1046,11 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
     font-weight:700;font-size:13px;padding:9px 0;border-radius:var(--r-pill);cursor:pointer;transition:background var(--t),color var(--t),border-color var(--t);}
   .exseg button[aria-current="true"],.fc-tab[aria-current="true"]{background:var(--segmented-active-bg);color:#0A0A0A;border:var(--segmented-active-border);}
   .exfilters{display:flex;gap:8px;margin-bottom:16px;}
-  .exf{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;border:1px solid var(--glass-stroke);background:rgba(0,0,0,.04);
-    color:var(--paper);font-family:inherit;font-weight:700;font-size:13px;padding:9px 10px;border-radius:var(--r-pill);cursor:pointer;transition:all .15s;min-width:0;}
+  .exf{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;border:none;background:var(--secondary-cta-bg);
+    color:var(--paper);font-family:inherit;font-weight:700;font-size:13px;padding:9px 10px;border-radius:var(--r-pill);cursor:pointer;transition:background var(--t),transform var(--t-fast);min-width:0;}
 
   .exf span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .exf-car{width:14px;height:14px;flex:none;stroke:var(--muted);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
+  .exf-car,.cmp-chev{width:14px;height:14px;flex:none;stroke:var(--muted);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
   .exf-inline{flex:0 0 auto;width:auto;padding:6px 12px;font-size:12px;}
   .ex-empty{display:flex;flex-direction:column;align-items:center;text-align:center;color:var(--muted);font-size:14.5px;padding:48px 30px;gap:12px;}
   /* filter sheets */
@@ -1180,7 +1177,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   .inv-rtext b{color:var(--paper);font-weight:700;}
   .inv-linkrow{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.045);border:1px solid var(--glass-stroke);border-radius:var(--r-sm);padding:11px 12px 11px 15px;margin-bottom:14px;}
   .inv-link{flex:1;min-width:0;font-size:14px;color:var(--paper);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .inv-copy{background:rgba(0,0,0,.06);border:1px solid var(--glass-stroke);color:var(--paper);font:inherit;font-weight:700;font-size:13px;padding:8px 15px;border-radius:var(--r-pill);cursor:pointer;flex:none;}
+  .inv-copy{font:inherit;font-weight:700;font-size:13px;padding:8px 15px;border-radius:var(--r-pill);cursor:pointer;flex:none;}
   .inv-stat{text-align:center;font-size:13px;color:var(--muted);margin-top:16px;}
   .inv-stat b{color:var(--paper);font-weight:700;}
   .posts-list{display:flex;flex-direction:column;}
@@ -1263,9 +1260,10 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   .fab svg{width:22px;height:22px;stroke:#0A0A0A;fill:none;stroke-width:2;stroke-linecap:round;}
   /* compose: Reddit-style trend picker */
   .cmp-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-  .cmp-select{display:inline-flex;align-items:center;gap:9px;background:rgba(0,0,0,.05);border:1px solid var(--glass-stroke);color:var(--paper);font:inherit;font-size:14.5px;font-weight:700;padding:9px 15px;border-radius:var(--r-pill);cursor:pointer;}
+  .cmp-select{display:inline-flex;align-items:center;gap:9px;background:var(--secondary-cta-bg);border:none;color:var(--paper);font:inherit;font-size:14.5px;font-weight:700;padding:9px 15px;border-radius:var(--r-pill);cursor:pointer;transition:background var(--t),transform var(--t-fast);}
   .cmp-sel-sw{width:20px;height:20px;border-radius:var(--r-xs);flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);display:none;}
-  .cmp-chev{color:var(--muted);font-size:13px;margin-left:1px;}
+  .cmp-chev{margin-left:1px;}
+  .exf:active,.cmp-select:active{background:var(--secondary-cta-active-bg);transform:scale(.98);}
   .cmp-x{background:none;border:none;color:var(--muted);font-size:19px;cursor:pointer;line-height:1;padding:4px 6px;}
   .cmp-dd{background:#FFFFFF;border:1px solid var(--glass-stroke);border-radius:var(--r-md);padding:8px;margin-bottom:14px;max-height:300px;overflow-y:auto;}
   .cmp-search{width:100%;background:rgba(0,0,0,.05);border:1px solid var(--glass-stroke);border-radius:var(--r-sm);padding:10px 13px;color:var(--paper);font:inherit;font-size:14px;outline:none;margin-bottom:6px;}
@@ -1410,8 +1408,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   .ord-sum>div{display:flex;flex-direction:column;gap:3px;min-width:0;}
   .ord-sum label{font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);}
   .ord-sum b{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--paper);white-space:nowrap;}
-  .baladd{margin-left:auto;background:rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.18);color:var(--rel);
-    font-family:inherit;font-weight:700;font-size:12px;padding:6px 12px;border-radius:var(--r-sm);cursor:pointer;}
+  .baladd{margin-left:auto;font-family:inherit;font-weight:700;font-size:12px;padding:6px 12px;border-radius:var(--r-sm);cursor:pointer;}
   /* Polymarket-style to-win: stake left, win right */
   .winrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:6px 2px 10px;}
   .wr-cell.right{text-align:right;}
@@ -1491,7 +1488,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   .cprof-icon svg{width:23px;height:23px;}
   .cprof-icon .bell-dot{top:5px;right:6px;background:var(--rel);border-color:var(--rel);}
   .cprof-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
-  .cprof-headr{display:flex;align-items:center;gap:10px;margin-left:auto;}
+  .cprof-headr{position:absolute;top:48px;right:var(--page-gutter);display:flex;align-items:center;gap:10px;}
   .cprof-head{display:flex;align-items:center;gap:16px;margin-bottom:16px;}
   .cprof-av{width:78px;height:78px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);}
   .cprof-id{min-width:0;}
@@ -1510,7 +1507,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   .cprof-edit.cprof-follow{min-height:44px;background:var(--paper);color:#FFFFFF;border:none;}
   .secondary-cta,.cprof-edit.cprof-follow.on,.cb-follow.on{background:var(--secondary-cta-bg);color:#0A0A0A;border:none;}
   .secondary-cta{min-height:48px;transition:transform var(--t-fast),background var(--t);}
-  .secondary-cta:active,.cprof-edit.cprof-follow.on:active,.cb-follow.on:active{background:#E4E4E4;}
+  .secondary-cta:active,.cprof-edit.cprof-follow.on:active,.cb-follow.on:active{background:var(--secondary-cta-active-bg);}
   .secondary-cta:active{transform:scale(.98);}
   /* Lone Follow button on another curator's profile: a compact, centered pill — not full-width. */
   .cprof-actions{justify-content:center;}
@@ -1534,6 +1531,8 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   .cprof-cc-cover.new svg{width:34px;height:34px;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;}
   .cprof-cc-t{font-weight:700;font-size:15px;color:var(--paper);margin-top:11px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .cprof-cc-sub{font-size:12.5px;color:var(--muted);margin-top:3px;}
+  .cprof-cc-dir.rise{color:var(--up);}
+  .cprof-cc-dir.cool{color:var(--down);}
   /* ===== Profile: Cosmos-style collapsing header ===== */
   .pfbar{position:absolute;top:0;left:0;right:0;z-index:25;
     height:calc(max(env(safe-area-inset-top,0px), 50px) + 44px);
@@ -1670,6 +1669,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
     .feedmenu{top:calc(env(safe-area-inset-top) + 12px);}
     .backbtn{top:calc(env(safe-area-inset-top) + 10px);}
     .feedtopr{top:calc(env(safe-area-inset-top) + 12px);}
+    .cprof-headr{top:calc(env(safe-area-inset-top) + 12px);}
     .tabbar,.coll-actions{bottom:calc(env(safe-area-inset-bottom) + 12px);}
     /* iOS memory: many large blurred/blended layers crash WebKit on load. These sit behind
        the media, so slim them way down on phones — big GPU savings, near-zero visual change. */
@@ -1683,10 +1683,20 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
     .topic{content-visibility:auto;contain-intrinsic-size:auto 100dvh;}
     .fc-round{-webkit-backdrop-filter:none;backdrop-filter:none;}
   }
+  /* Short Safari viewports lose substantial height to browser chrome. Compact only the
+     review stack so its card and action pill remain separate without changing desktop. */
+  @media (max-width:600px) and (max-height:760px){
+    .rv-top{padding-top:max(70px,calc(env(safe-area-inset-top) + 54px));}
+    .rv-mine{margin-top:4px;}
+    .rv-deck{padding-block:8px;}
+    .rv-card{max-height:calc(100% - 16px);}
+    .rv-actions{padding-top:6px;padding-bottom:calc(env(safe-area-inset-bottom) + 12px);}
+  }
 /* Hide the trend-page Signal button (and its glow) while a sheet is open, so it can't bleed through */
 .forecast-bar.under-sheet{opacity:0;visibility:hidden;transition:opacity .12s ease;}
-/* "+ Add" credits pill: white label on the subtle orange pill */
-.baladd{color:var(--paper);}
+/* Compact neutral actions use the secondary CTA surface while retaining their local sizing. */
+.compact-secondary-cta{background:var(--secondary-cta-bg);color:#0A0A0A;border:none;transition:background var(--t),transform var(--t-fast);}
+.compact-secondary-cta:active{background:var(--secondary-cta-active-bg);transform:scale(.98);}
 /* Feed sentiment %: white for both up and down (direction shown by ▲/▼) */
 .fmeta .sentmini.dn{color:#fff;}
 /* ============================================================
@@ -1697,8 +1707,6 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 /* Settings toggles (Notifications, Reduce motion, 2FA, TP/SL...) — monochrome, never orange */
 .switch[aria-pressed="true"]{background:#0A0A0A;}
 .switch[aria-pressed="true"] span{background:#fff;box-shadow:none;}
-/* "+ Add" credits pill in the Signal sheet — neutral, no orange tint/gradient */
-.baladd{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.18);color:var(--paper);}
 /* "NEW TREND" eyebrow white (the .warn "Already on NOISE" state stays orange) */
 .ct-eyebrow{color:var(--paper);}
 /* Heat bar: solid, no orange gradient */
