@@ -111,7 +111,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   background:linear-gradient(to top,rgba(0,0,0,.58),rgba(0,0,0,.14) 52%,transparent);}
 .gc-top{position:absolute;top:9px;left:9px;right:9px;z-index:3;display:flex;align-items:center;justify-content:space-between;}
 .gc-deg{font-size:11px;font-weight:700;color:rgba(255,255,255,.92);background:rgba(11,12,15,.34);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
-  padding:2px 8px;border-radius:999px;font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
+  padding:2px 8px;border-radius:var(--r-pill);font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
 .gc-play{width:24px;height:24px;border-radius:50%;background:rgba(11,12,15,.34);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
   display:flex;align-items:center;justify-content:center;}
 .gc-play svg{width:12px;height:12px;fill:#fff;margin-left:1px;}
@@ -324,7 +324,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 #s-newlist .fcard .gc-plus svg{width:16px;height:16px;}
 /* floating pill CTA over the picker */
 #s-newlist.stage-pick .nl-bar{background:none;display:flex;justify-content:center;pointer-events:none;}
-#s-newlist.stage-pick .nl-create{pointer-events:auto;width:auto;min-width:230px;padding:15px 32px;border-radius:999px;}
+#s-newlist.stage-pick .nl-create{pointer-events:auto;width:auto;min-width:230px;padding:15px 32px;border-radius:var(--r-pill);}
 .nl-vis{flex:1;min-width:0;font:inherit;text-align:left;cursor:pointer;color:var(--muted);
   background:rgba(0,0,0,.04);border:1px solid var(--glass-stroke);border-radius:var(--r-sm);padding:10px 12px;
   transition:background var(--t),color var(--t),border-color var(--t);}
@@ -575,11 +575,11 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 .rv-bar span{display:block;height:100%;background:#54D9A6;border-radius:3px;}
 .rv-tally-tx{font-size:12px;color:rgba(255,255,255,.9);margin-top:7px;font-weight:600;}
 .rv-actions{flex:none;display:flex;align-items:center;justify-content:center;gap:26px;padding:10px 24px calc(env(safe-area-inset-bottom) + 22px);}
-.rv-pill{display:flex;align-items:center;gap:4px;padding:7px;border-radius:999px;
+.rv-pill{display:flex;align-items:center;gap:4px;padding:7px;border-radius:var(--r-pill);
   background:rgba(255,255,255,.92);border:1px solid rgba(0,0,0,.10);
   -webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);}
 .rv-sep{width:1px;height:22px;background:rgba(0,0,0,.12);flex:none;}
-.rv-abtn{width:60px;height:44px;border-radius:999px;border:none;background:none;cursor:pointer;
+.rv-abtn{width:60px;height:44px;border-radius:var(--r-pill);border:none;background:none;cursor:pointer;
   display:flex;align-items:center;justify-content:center;transition:transform .12s,background .15s;}
 .rv-abtn:active{transform:scale(.94);background:rgba(0,0,0,.06);}
 .rv-abtn svg{width:22px;height:22px;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
@@ -1287,7 +1287,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   .schart-dot{position:absolute;width:9px;height:9px;border-radius:50%;background:#0A0A0A;transform:translate(-50%,-50%);box-shadow:0 0 0 3px rgba(255,255,255,.9);display:none;pointer-events:none;z-index:6;}
   .schart-val{position:absolute;font-size:16px;font-weight:800;letter-spacing:-.01em;color:var(--paper);font-variant-numeric:tabular-nums;white-space:nowrap;display:none;pointer-events:none;z-index:7;}
   /* impact chip: the move a selected event caused, pinned near its dot */
-  .schart-impact{position:absolute;display:none;font-size:12px;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap;pointer-events:none;z-index:7;font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
+  .schart-impact{position:absolute;display:none;font-size:12px;font-weight:800;padding:2px 8px;border-radius:var(--r-pill);white-space:nowrap;pointer-events:none;z-index:7;font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
   .schart-impact.show{display:block;}
   .schart-impact.up{background:rgba(84,217,166,.16);color:var(--up);border:1px solid rgba(18,145,95,.4);}
   .schart-impact.dn{background:rgba(224,99,90,.14);color:var(--down);border:1px solid rgba(201,79,66,.4);}
@@ -1508,7 +1508,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   .cprof-tab{flex:1;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:15px;color:var(--muted);padding:0 0 13px;position:relative;display:flex;align-items:center;justify-content:center;gap:7px;transition:color .18s;}
   .cprof-tab[aria-current=true]{color:var(--paper);}
   .cprof-tab[aria-current=true]::after{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:-1px;width:64px;height:2px;border-radius:2px;background:#0A0A0A;}
-  .cprof-tn{font-size:12px;font-weight:600;color:var(--muted);background:rgba(0,0,0,.06);min-width:20px;height:20px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;padding:0 6px;font-variant-numeric:tabular-nums;}
+  .cprof-tn{font-size:12px;font-weight:600;color:var(--muted);background:rgba(0,0,0,.06);min-width:20px;height:20px;border-radius:var(--r-pill);display:inline-flex;align-items:center;justify-content:center;padding:0 6px;font-variant-numeric:tabular-nums;}
   .cprof-tab[aria-current=true] .cprof-tn{color:var(--paper);}
   .cprof-pane[hidden]{display:none;}
   .cprof-empty{grid-column:1/-1;color:var(--muted);font-size:14px;padding:26px 2px;text-align:center;}
@@ -1533,10 +1533,10 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
      Pill is narrower and the bar keeps a real right inset, so the bell + menu pair sits further
      in from the edge instead of hugging it. */
   .pfbar{padding-left:14px;padding-right:14px;gap:2px;}
-  .pfbar-pill{display:flex;align-items:center;flex:0 1 268px;height:42px;border-radius:999px;
+  .pfbar-pill{display:flex;align-items:center;flex:0 1 268px;height:42px;border-radius:var(--r-pill);
     background:rgba(0,0,0,.055);padding:4px;margin-right:4px;}
   .pfbar-chip{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 13px 0 4px;
-    border-radius:999px;background:#fff;border:1px solid rgba(0,0,0,.08);cursor:pointer;flex:none;}
+    border-radius:var(--r-pill);background:#fff;border:1px solid rgba(0,0,0,.08);cursor:pointer;flex:none;}
   .pfbar-av{width:26px;height:26px;border-radius:50%;background:#aab2c8;flex:none;}
   .pfbar-name{font-size:13.5px;font-weight:700;letter-spacing:-.01em;color:var(--paper);line-height:1;}
   .pfbar-edit{flex:1;min-width:0;text-align:left;padding:0 4px 0 14px;font-size:13.5px;font-weight:600;
@@ -1562,7 +1562,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   .cprof-sec{margin-bottom:26px;}
   .cprof-sec:last-child{margin-bottom:0;}
   .cprof-sec-h{font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--paper);margin:0 2px 13px;display:flex;align-items:center;gap:8px;}
-  .cprof-sec-h .cprof-tn{font-size:11px;color:var(--faint);background:rgba(0,0,0,.05);border-radius:999px;padding:1px 8px;font-weight:700;letter-spacing:0;}
+  .cprof-sec-h .cprof-tn{font-size:11px;color:var(--faint);background:rgba(0,0,0,.05);border-radius:var(--r-pill);padding:1px 8px;font-weight:700;letter-spacing:0;}
   .cprof-rail{display:flex;gap:12px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-x;overscroll-behavior-x:contain;scroll-snap-type:x proximity;margin:0;padding:0 0 2px;}
   .cprof-rail::-webkit-scrollbar{height:0;}
   .cprof-rail .cprof-cc{width:134px;flex:none;scroll-snap-align:start;}
@@ -1634,8 +1634,8 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   /* Signal button morphs into a circular up-arrow (scroll-to-top) when All trends is open. */
   .fb-btn{position:relative;flex:0 1 auto;width:100%;height:54px;display:flex;align-items:center;justify-content:center;overflow:hidden;
     background:var(--paper);color:#FFFFFF;font-family:inherit;font-weight:700;font-size:16px;letter-spacing:-.01em;
-    padding:0 16px;border:none;border-radius:var(--r-md);cursor:pointer;
-    transition:width .5s cubic-bezier(.2,.7,.2,1),height .5s cubic-bezier(.2,.7,.2,1),border-radius .5s,background .3s;}
+    padding:0 16px;border:1px solid var(--paper);border-radius:var(--r-pill);cursor:pointer;
+    transition:width .5s cubic-bezier(.2,.7,.2,1),height .5s cubic-bezier(.2,.7,.2,1),border-radius .5s,background .3s,transform var(--t);}
   .fb-btn:active{transform:scale(.985);}
   .fb-label{transition:opacity .22s ease;}
   .fb-arrow{position:absolute;width:26px;height:26px;fill:none;stroke:#FFFFFF;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;
@@ -1675,10 +1675,6 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
     .topic{content-visibility:auto;contain-intrinsic-size:auto 100dvh;}
     .fc-round{-webkit-backdrop-filter:none;backdrop-filter:none;}
   }
-/* Signal CTA — brand yellow component (black content per black-on-yellow rule) */
-.forecast-bar .fb-btn,.forecast-bar.allmode .fb-btn{background:var(--yellow);color:#000;box-shadow:none;border:1px solid rgba(0,0,0,.12);}
-.forecast-bar .fb-label{color:#000;}
-.forecast-bar .fb-arrow{stroke:#000;fill:none;}
 /* In-sheet Signal confirm CTA = brand yellow in its non-directional state (Rise/Cool still turn it green/red) */
 #sheet .cta-place:not(.side-rise):not(.side-cool){background:var(--yellow);color:#000;}
 /* Hide the trend-page Signal button (and its glow) while a sheet is open, so it can't bleed through */
