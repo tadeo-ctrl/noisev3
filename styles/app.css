@@ -86,7 +86,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 .feed::-webkit-scrollbar{width:0;}
 .feedcol{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:10px;}
 /* Innermost zoom state: one full-screen trend per page, snap between them vertically. */
-.feed.single{display:block;padding:0;gap:0;scroll-snap-type:y mandatory;overscroll-behavior-y:contain;}
+.feed.single{display:block;padding:0;gap:0;scroll-snap-type:y mandatory;overscroll-behavior-y:contain;background:#0f0f13;}
 .feed.single .topic{width:100%;}
 /* soft fade behind the floating header (logo / Trending·Niche / bell) */
 #s-feed::before{content:"";position:absolute;top:0;left:0;right:0;height:118px;z-index:10;pointer-events:none;
@@ -162,8 +162,8 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 /* gentle depth: the Home feed eases back a touch behind the fading-in galaxy */
 #s-feed .feed{transition:transform .58s cubic-bezier(.22,.61,.36,1);}
 #s-feed.gx-on .feed{transform:scale(.93);}
-.topic{height:100%;scroll-snap-align:start;position:relative;overflow:hidden;}
-.mtrack{position:absolute;inset:0;height:100%;width:100%;overflow:hidden;perspective:980px;transform-style:preserve-3d;
+.topic{height:100%;scroll-snap-align:start;position:relative;overflow:hidden;background:#0f0f13;}
+.mtrack{position:absolute;inset:0;height:100%;width:100%;overflow:hidden;background:#0f0f13;perspective:980px;transform-style:preserve-3d;
   touch-action:pan-y;overscroll-behavior-x:contain;-webkit-user-select:none;user-select:none;}
 .media{position:absolute;inset:0;width:100%;height:100%;overflow:hidden;background:#0f0f13;backface-visibility:hidden;
   transform-origin:center center;transition:transform .44s cubic-bezier(.2,.85,.25,1),opacity .22s ease,visibility .22s ease;

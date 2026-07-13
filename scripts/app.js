@@ -456,7 +456,10 @@
     slides.forEach(function(sl,k){
       var d=slideDelta(k,pos,c.n),ad=Math.abs(d),vis=ad<=1.04;
       sl.setAttribute('data-slide-visible',vis?'1':'0');
-      sl.setAttribute('data-slide-mount',ad<.62?'1':'0');
+      // During a cube turn both participating faces need their poster/video ready. At rest the
+      // adjacent faces sit at exactly 1 and remain unmounted, so this still keeps only one live
+      // slide until a horizontal gesture actually begins.
+      sl.setAttribute('data-slide-mount',ad<1?'1':'0');
       sl.style.visibility=vis?'visible':'hidden';
       sl.style.pointerEvents=ad<.08?'auto':'none';
       sl.style.zIndex=String(1000-Math.round(ad*100));
@@ -465,17 +468,15 @@
         sl.style.transform='translate3d(0,0,0)';
         return;
       }
-      var x=Math.max(-54,Math.min(54,d*54));
-      // Keep the shared inner edge closest to the viewer. Matching the rotation sign to the
-      // slide's horizontal offset makes this a convex cube turn; the inverse sign folds the
-      // outer edges forward and reads as the inside of a cube.
+      // Translate each full-width face by the same proportion it rotates. For adjacent faces,
+      // 100% + outgoing x always equals incoming x, so their inner pivots are one shared seam.
+      var x=Math.max(-100,Math.min(100,d*100));
       var angle=Math.max(-90,Math.min(90,d*90));
-      var z=-Math.min(120,ad*72);
       sl.style.transformOrigin=d<0?'right center':(d>0?'left center':'center center');
-      sl.style.opacity=vis?String(ad>=.98?0:Math.max(.38,1-ad*.35)):'0';
+      sl.style.opacity=vis&&ad<1?'1':'0';
       sl.style.transform=vis
-        ? 'translate3d('+x+'%,0,'+z+'px) rotateY('+angle+'deg)'
-        : 'translate3d('+(d>0?92:-92)+'%,0,-140px) rotateY('+(d>0?90:-90)+'deg)';
+        ? 'translate3d('+x+'%,0,0) rotateY('+angle+'deg)'
+        : 'translate3d('+(d>0?100:-100)+'%,0,0) rotateY('+(d>0?90:-90)+'deg)';
     });
     if(instant&&!wasDragging){void track.offsetWidth;track.classList.remove('dragging');}
   }

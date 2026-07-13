@@ -44,6 +44,7 @@ function contentType(file) {
   if (file.endsWith('.jpg') || file.endsWith('.jpeg')) return 'image/jpeg';
   if (file.endsWith('.png')) return 'image/png';
   if (file.endsWith('.avif')) return 'image/avif';
+  if (file.endsWith('.svg')) return 'image/svg+xml';
   if (file.endsWith('.mp4')) return 'video/mp4';
   return 'application/octet-stream';
 }
@@ -205,13 +206,20 @@ async function main() {
 
     // A left drag should hinge both panels around their shared edge as the outside of a cube:
     // the outgoing (left) face rotates negative and the incoming (right) face rotates positive.
-    const cubeEnd = await holdMouseDrag(cdp, sessionId, [[300, 420], [260, 420], [220, 420], [195, 420]]);
+    const cubeEnd = await holdMouseDrag(cdp, sessionId, [[300, 420], [260, 420], [210, 420], [155, 420], [105, 420]]);
     const cubeMid = await readCubeState(cdp, sessionId);
     assert(cubeMid.dragging, 'feed carousel should enter its drag state during a horizontal gesture');
     assert(cubeMid.outgoingRotation < 0, `outgoing cube face should rotate away on the left, got ${cubeMid.outgoingRotation}deg`);
     assert(cubeMid.incomingRotation > 0, `incoming cube face should rotate in from the right, got ${cubeMid.incomingRotation}deg`);
+    assert(Math.abs(cubeMid.outgoingRotation + 45) < 0.2, `outgoing face should be -45deg at midpoint, got ${cubeMid.outgoingRotation}deg`);
+    assert(Math.abs(cubeMid.incomingRotation - 45) < 0.2, `incoming face should be 45deg at midpoint, got ${cubeMid.incomingRotation}deg`);
     assert(cubeMid.outgoingOrigin === 'right center', `outgoing cube face should hinge on its right edge, got ${cubeMid.outgoingOrigin}`);
     assert(cubeMid.incomingOrigin === 'left center', `incoming cube face should hinge on its left edge, got ${cubeMid.incomingOrigin}`);
+    assert(cubeMid.seamGap < 0.05, `cube faces should share one hinge, got a ${cubeMid.seamGap}% gap`);
+    assert(cubeMid.outgoingOpacity === 1 && cubeMid.incomingOpacity === 1, 'both cube faces should remain opaque during the drag');
+    assert(cubeMid.incomingMounted, 'incoming cube face should mount as soon as the drag begins');
+    assert(cubeMid.incomingHasVisual, 'incoming cube face should show its poster or video during the drag');
+    assert(cubeMid.trackBackground === 'rgb(15, 15, 19)', `cube underlay should be dark, got ${cubeMid.trackBackground}`);
     await releaseMouseDrag(cdp, sessionId, cubeEnd);
     await sleep(500);
 
@@ -313,12 +321,24 @@ async function readCubeState(cdp, sessionId) {
       const match = slide.style.transform.match(/rotateY\\((-?[\\d.]+)deg\\)/);
       return match ? Number(match[1]) : 0;
     };
+    const translation = (slide) => {
+      const match = slide.style.transform.match(/translate3d\\((-?[\\d.]+)%/);
+      return match ? Number(match[1]) : 0;
+    };
+    const outgoingTranslation = translation(slides[0]);
+    const incomingTranslation = translation(slides[1]);
     return {
       dragging: track.classList.contains('dragging'),
       outgoingRotation: rotation(slides[0]),
       incomingRotation: rotation(slides[1]),
       outgoingOrigin: slides[0].style.transformOrigin,
       incomingOrigin: slides[1].style.transformOrigin,
+      seamGap: Math.abs((100 + outgoingTranslation) - incomingTranslation),
+      outgoingOpacity: Number(slides[0].style.opacity),
+      incomingOpacity: Number(slides[1].style.opacity),
+      incomingMounted: slides[1].getAttribute('data-slide-mount') === '1',
+      incomingHasVisual: slides[1].style.backgroundImage.includes('url(') || Boolean(slides[1].querySelector('video')),
+      trackBackground: getComputedStyle(track).backgroundColor,
     };
   })()`);
 }
