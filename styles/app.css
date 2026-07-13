@@ -1108,9 +1108,9 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   .post-add{background:none;border:none;cursor:pointer;color:var(--paper);padding:0;display:flex;align-items:center;transition:opacity .15s;}
   .post-add:active{opacity:.5;}
   .post-add svg{width:27px;height:27px;stroke:currentColor;fill:none;stroke-width:2.1;stroke-linecap:round;}
-  .posts-filterbar{display:flex;align-items:stretch;gap:8px;margin-bottom:16px;}
+  .posts-filter-controls{display:flex;align-items:stretch;gap:8px;margin-bottom:16px;}
   .posts-filters{flex:1;margin-bottom:0;}
-  .post-add-round{flex:none;width:34px;height:34px;align-self:center;border-radius:50%;background:var(--paper);border:none;cursor:pointer;
+  .post-add-round{flex:none;width:36px;height:36px;align-self:center;border-radius:50%;background:var(--paper);border:none;cursor:pointer;
     display:flex;align-items:center;justify-content:center;padding:0;transition:transform .12s,opacity .15s;}
   .post-add-round:active{transform:scale(.95);}
   .post-add-round svg{width:18px;height:18px;stroke:#FFFFFF;fill:none;stroke-width:2.4;stroke-linecap:round;}
