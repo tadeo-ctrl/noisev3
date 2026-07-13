@@ -5,6 +5,7 @@ const html = fs.readFileSync('index.html', 'utf8');
 const dataJs = fs.readFileSync('scripts/data.js', 'utf8');
 const appJs = fs.readFileSync('scripts/app.js', 'utf8');
 const css = fs.readFileSync('styles/app.css', 'utf8');
+const devServerJs = fs.readFileSync('scripts/dev-server.mjs', 'utf8');
 
 function assert(condition, message) {
   if (!condition) {
@@ -21,6 +22,9 @@ assert(
 assert(!html.match(/<style>[\s\S]*<\/style>/), 'index.html should not contain inline CSS');
 assert(!html.match(/<script>[\s\S]*<\/script>/), 'index.html should not contain inline JavaScript');
 assert(css.includes('@font-face'), 'app.css should contain the embedded font definitions');
+assert(devServerJs.includes("const publicFiles = new Set(['index.html', 'scripts/app.js', 'scripts/data.js'])"), 'development server should expose only required root and script files');
+assert(devServerJs.includes("const publicDirectories = ['media/', 'styles/']"), 'development server should expose only required asset directories');
+assert(devServerJs.includes('if (!isPublicAsset(file))'), 'development server should block internal repository files');
 assert(css.includes('touch-action:pan-y'), 'feed carousel must preserve native vertical panning');
 assert(css.includes('transform-style:preserve-3d'), 'feed carousel should keep a 3D transform context');
 assert(!css.includes('.dots{') && !appJs.includes('data-dots') && !appJs.includes('class="dots"'), 'feed carousel top indicators should not render');

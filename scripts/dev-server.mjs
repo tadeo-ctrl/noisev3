@@ -14,6 +14,8 @@ function argument(name, fallback) {
 
 const host = argument('host', process.env.HOST || '127.0.0.1');
 const port = Number(argument('port', process.env.PORT || '4173'));
+const publicFiles = new Set(['index.html', 'scripts/app.js', 'scripts/data.js']);
+const publicDirectories = ['media/', 'styles/'];
 
 if (!Number.isInteger(port) || port < 0 || port > 65535) {
   throw new Error(`Invalid port: ${port}`);
@@ -70,6 +72,11 @@ function sendText(res, statusCode, message, headers = {}) {
   res.end(message);
 }
 
+function isPublicAsset(file) {
+  const relative = path.relative(repoRoot, file).split(path.sep).join('/');
+  return publicFiles.has(relative) || publicDirectories.some((directory) => relative.startsWith(directory));
+}
+
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url || '/', `http://${host}`);
@@ -84,6 +91,10 @@ const server = http.createServer(async (req, res) => {
     const file = path.resolve(repoRoot, `.${pathname}`);
     if (file !== repoRoot && !file.startsWith(`${repoRoot}${path.sep}`)) {
       sendText(res, 403, 'Forbidden');
+      return;
+    }
+    if (!isPublicAsset(file)) {
+      sendText(res, 404, 'Not found');
       return;
     }
 

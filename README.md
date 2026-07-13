@@ -23,7 +23,7 @@ Open <http://127.0.0.1:4173>. To use another host or port:
 npm run dev -- --host 0.0.0.0 --port 8080
 ```
 
-The local server disables caching and supports HTTP byte ranges so the prototype's MP4 assets behave like they do in deployment.
+The local server disables caching and supports HTTP byte ranges so the prototype's MP4 assets behave like they do in deployment. It exposes only the prototype's runtime assets; internal notes and repository metadata are not served to the local network.
 
 ### Test on a phone
 
