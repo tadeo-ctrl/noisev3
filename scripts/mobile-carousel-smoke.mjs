@@ -293,6 +293,10 @@ async function main() {
       assert(rail.scrollWidth > rail.clientWidth, `${rail.name} should have draggable overflow`);
       assert(rail.overflowX === 'hidden', `${rail.name} should hide native horizontal overflow, got ${rail.overflowX}`);
       assert(rail.touchAction === 'pan-y', `${rail.name} should preserve vertical page panning, got ${rail.touchAction}`);
+      if (rail.name !== 'Hero') {
+        assert(rail.itemWidths.length === 1, `${rail.name} cards should have one width, got ${rail.itemWidths.join(', ')}`);
+        assert(rail.coverHeights.length === 1, `${rail.name} covers should have one height, got ${rail.coverHeights.join(', ')}`);
+      }
     }
     for (const selector of ['#d-car', '#d-colls', '#d-relfeed .rel-scroll']) {
       const dragResult = await dragRail(cdp, sessionId, selector);
@@ -488,9 +492,16 @@ async function readDetailRailState(cdp, sessionId) {
       rails: specs.map(([name, selector]) => {
         const el = document.querySelector(selector);
         const style = getComputedStyle(el);
+        const items = Array.from(el.children);
+        const itemWidths = [...new Set(items.map((item) => Number(item.getBoundingClientRect().width.toFixed(2))))];
+        const coverHeights = [...new Set(items.map((item) => item.querySelector('.cprof-cc-cover'))
+          .filter(Boolean)
+          .map((cover) => Number(cover.getBoundingClientRect().height.toFixed(2))))];
         return {
           name,
           itemCount: el.children.length,
+          itemWidths,
+          coverHeights,
           scrollWidth: Math.round(el.scrollWidth),
           clientWidth: Math.round(el.clientWidth),
           overflowX: style.overflowX,
