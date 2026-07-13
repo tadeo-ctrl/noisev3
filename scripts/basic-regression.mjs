@@ -39,8 +39,9 @@ assert(appJs.includes('function renderCubePosition'), 'feed carousel cube render
 assert(appJs.includes('rotateY'), 'feed carousel should use a 3D cube-style transition');
 assert(appJs.includes('setPointerCapture'), 'feed carousel should capture horizontal drags after axis lock');
 assert(appJs.includes('if(c.n<2)'), 'single-slide feed tracks should skip horizontal carousel dragging');
-assert(appJs.includes('function cardHTML(') && appJs.includes('colHtml[c]+=cardHTML(') && css.includes('.feedcol'), 'feed should render as a Cosmos-style two-column masonry board');
-assert(appJs.includes('var FEED_RATIOS=') && appJs.match(/FEED_RATIOS=\[\[.*\],\[.*\]/) && css.includes('.fcard') && css.includes('aspect-ratio:9/16'), 'feed cards should use mixed placeholder ratios via inline aspect-ratio');
+assert(appJs.includes("var feedMode='single'") && appJs.includes('function renderFeedSingle(') && css.includes('.feed.single'), 'Home should default to the immersive one-trend feed');
+assert(appJs.includes('function cardHTML(') && appJs.includes('colHtml[c]+=cardHTML(') && css.includes('.feedcol'), 'the zoomed-out feed should retain its Cosmos-style masonry board');
+assert(appJs.includes('var FEED_RATIOS=') && appJs.match(/FEED_RATIOS=\[\[.*\],\[.*\]/) && css.includes('.fcard') && css.includes('aspect-ratio:9/16'), 'zoomed-out feed cards should use mixed placeholder ratios via inline aspect-ratio');
 assert(appJs.includes('function previewClipId(id)') && appJs.includes('class="cmp-opt-media"') && appJs.includes('clipAttrs(vid,1,true)'), 'compose trend picker should render video-backed trend previews');
 assert(!html.includes('LEEME_EDDY') && !dataJs.includes('LEEME_EDDY') && !appJs.includes('LEEME_EDDY'), 'personal handoff filename should not be referenced');
 assert(!appJs.match(/querySelectorAll\('\[data-vsrc\]'\)\.forEach\(function\(el\)\{mountVid\(el\);/), 'avoid eager mounting entire containers');

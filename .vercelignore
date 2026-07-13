@@ -12,6 +12,7 @@ media/mewing/
 media/**/*.mov
 
 # Dev + QA tooling
+scripts/dev-server.mjs
 scripts/_qa-final.mjs
 scripts/basic-regression.mjs
 scripts/mobile-carousel-smoke.mjs
@@ -20,11 +21,20 @@ scripts/fetch-media-retry.sh
 node_modules/
 package.json
 package-lock.json
+.nvmrc
 
 # Not part of the web app
 react-native/
 Collections.docx
 *.zip
+
+# Internal product and development context
+AGENTS.md
+README.md
+docs/
+kb/
+noise-relevance-algorithm-base.md
+noise-relevance-algorithm-explainer.html
 
 # macOS cruft
 .DS_Store

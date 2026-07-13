@@ -1,0 +1,2619 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NOISE Relevance Algorithm</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f4ee;
+      --paper: #ffffff;
+      --paper-soft: #fbfbf8;
+      --section-warm: #f7f4ee;
+      --section-cool: #eef2f1;
+      --ink: #171717;
+      --muted: #62615d;
+      --line: #dedbd2;
+      --line-strong: #c7c1b6;
+      --blue: #2359ff;
+      --green: #11784f;
+      --amber: #a76500;
+      --red: #b43b3b;
+      --violet: #6554c0;
+      --shadow: 0 18px 50px rgba(20, 20, 20, 0.08);
+      --radius: 8px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.55;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .page {
+      min-height: 100vh;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--line);
+      background: rgba(247, 244, 238, 0.94);
+      backdrop-filter: blur(14px);
+    }
+
+    .topbar-inner {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      min-height: 64px;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    nav a {
+      flex: 0 0 auto;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 10px;
+      border-radius: var(--radius);
+    }
+
+    nav a:hover,
+    nav a:focus-visible {
+      color: var(--ink);
+      background: #eceae3;
+      outline: none;
+    }
+
+    header {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 56px 0 36px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 440px);
+      gap: 28px;
+      align-items: stretch;
+    }
+
+    .hero h1 {
+      margin: 0;
+      max-width: 760px;
+      font-size: 46px;
+      line-height: 1.04;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 740px;
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 9px 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .btn.secondary {
+      background: transparent;
+      color: var(--ink);
+      border-color: var(--line-strong);
+    }
+
+    .shape-card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      display: flex;
+      align-items: center;
+    }
+
+    .shape-list {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 10px;
+      counter-reset: shape;
+    }
+
+    .shape-list li {
+      counter-increment: shape;
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      align-items: center;
+      gap: 12px;
+      min-height: 44px;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper-soft);
+      font-weight: 800;
+    }
+
+    .shape-list li::before {
+      content: counter(shape);
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    main {
+      width: 100%;
+    }
+
+    section {
+      border-top: 1px solid var(--line);
+      background: var(--section-bg, var(--bg));
+      padding: 44px 0;
+      scroll-margin-top: 82px;
+    }
+
+    #eligibility,
+    #pools,
+    #mixing,
+    #curation {
+      --section-bg: var(--section-cool);
+    }
+
+    #surface,
+    #score,
+    #feed,
+    #terminology {
+      --section-bg: var(--section-warm);
+    }
+
+    section > .section-inner {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .section-head {
+      margin-bottom: 22px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 31px;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .section-head p {
+      max-width: 760px;
+      margin: 10px 0 0;
+      color: var(--muted);
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .explorer {
+      display: grid;
+      gap: 12px;
+    }
+
+    .trail-connector {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      margin: 0 0 -2px 18px;
+      min-height: 28px;
+    }
+
+    .trail-arrow {
+      position: relative;
+      width: 20px;
+      height: 28px;
+      flex: 0 0 20px;
+    }
+
+    .trail-arrow::before {
+      content: "";
+      position: absolute;
+      left: 9px;
+      top: 0;
+      width: 2px;
+      height: 22px;
+      background: var(--line-strong);
+    }
+
+    .trail-arrow::after {
+      content: "";
+      position: absolute;
+      left: 5px;
+      top: 15px;
+      width: 8px;
+      height: 8px;
+      border-right: 2px solid var(--line-strong);
+      border-bottom: 2px solid var(--line-strong);
+      transform: rotate(45deg);
+    }
+
+    .logic-card,
+    .sim-card,
+    .term-card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 12px 34px rgba(20, 20, 20, 0.05);
+    }
+
+    .logic-card {
+      display: grid;
+      grid-template-columns: minmax(280px, 0.92fr) minmax(280px, 1.08fr);
+      gap: 0;
+      overflow: hidden;
+    }
+
+    .logic-left,
+    .logic-right {
+      padding: 18px;
+    }
+
+    .logic-left {
+      border-right: 1px solid var(--line);
+      background: var(--paper-soft);
+    }
+
+    .logic-kind {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .logic-card h3 {
+      margin: 0 0 12px;
+      font-size: 22px;
+      line-height: 1.16;
+      letter-spacing: 0;
+    }
+
+    .logic-expression {
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 14px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .part-button {
+      display: inline;
+      margin: 0 1px;
+      padding: 2px 5px;
+      border: 1px solid rgba(35, 89, 255, 0.35);
+      border-radius: 6px;
+      background: rgba(35, 89, 255, 0.08);
+      color: #1437a6;
+      font: inherit;
+      line-height: inherit;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .part-button:hover,
+    .part-button:focus-visible {
+      border-color: var(--blue);
+      background: rgba(35, 89, 255, 0.14);
+      outline: none;
+    }
+
+    .logic-right p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .logic-right p + p {
+      margin-top: 12px;
+    }
+
+    .logic-note {
+      padding-left: 13px;
+      border-left: 3px solid var(--blue);
+      color: var(--ink) !important;
+      font-weight: 650;
+    }
+
+    .example-line {
+      margin-top: 14px;
+      padding: 12px 0 0;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .status-rows {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .status-row {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 10px;
+      padding: 8px 0;
+      border-top: 1px solid var(--line);
+      font-size: 14px;
+    }
+
+    .status-row:first-child {
+      border-top: 0;
+    }
+
+    .status-row strong {
+      color: var(--ink);
+    }
+
+    .status-row span {
+      color: var(--muted);
+    }
+
+    .sim-card {
+      padding: 18px;
+      position: sticky;
+      top: 82px;
+    }
+
+    .sim-card h3 {
+      margin: 0 0 6px;
+      font-size: 19px;
+      line-height: 1.2;
+    }
+
+    .sim-card > p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .control-stack {
+      display: grid;
+      gap: 13px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 750;
+    }
+
+    .field small {
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    select,
+    input[type="range"] {
+      width: 100%;
+    }
+
+    select {
+      min-height: 38px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--ink);
+      padding: 7px 9px;
+      font: inherit;
+      font-size: 14px;
+    }
+
+    .check-field {
+      display: grid;
+      grid-template-columns: 18px minmax(0, 1fr);
+      gap: 8px;
+      align-items: start;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .check-field input {
+      margin-top: 3px;
+    }
+
+    input[type="range"] {
+      accent-color: var(--ink);
+    }
+
+    .result-panel {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      display: grid;
+      gap: 8px;
+    }
+
+    .result-main {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .result-main strong {
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .result-main span {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .result-status {
+      color: var(--ink) !important;
+      font-weight: 750;
+    }
+
+    .result-panel p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .route-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .route-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: start;
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .route-item:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .route-item strong {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .route-pill {
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .route-pill.active {
+      border-color: rgba(14, 110, 75, 0.3);
+      background: rgba(14, 110, 75, 0.09);
+      color: #0e6e4b;
+    }
+
+    .derived-values {
+      display: grid;
+      gap: 7px;
+      margin-top: 4px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .derived-value {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .derived-value strong {
+      color: var(--ink);
+    }
+
+    .bar {
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #e8e5dc;
+    }
+
+    .bar > span {
+      display: block;
+      height: 100%;
+      width: var(--value, 0%);
+      background: var(--blue);
+    }
+
+    .bar.green > span {
+      background: var(--green);
+    }
+
+    .bar.amber > span {
+      background: var(--amber);
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #eceae3;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .pill.pass {
+      background: rgba(17, 120, 79, 0.12);
+      color: var(--green);
+    }
+
+    .pill.cap {
+      background: rgba(167, 101, 0, 0.13);
+      color: var(--amber);
+    }
+
+    .pill.block {
+      background: rgba(180, 59, 59, 0.12);
+      color: var(--red);
+    }
+
+    .terms-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .term-card {
+      padding: 14px;
+      box-shadow: none;
+    }
+
+    .term-card h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+
+    .term-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .slots {
+      display: grid;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .slot-row {
+      display: grid;
+      grid-template-columns: 110px minmax(0, 1fr) 48px;
+      gap: 8px;
+      align-items: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .slot-row strong {
+      color: var(--ink);
+    }
+
+    footer {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 44px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .section-grid,
+      .logic-card {
+        grid-template-columns: 1fr;
+      }
+
+      .logic-left {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .sim-card {
+        position: static;
+      }
+
+      .terms-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .topbar-inner {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+        padding: 10px 0;
+      }
+
+      nav {
+        width: 100%;
+      }
+
+      header {
+        padding-top: 36px;
+      }
+
+      .hero h1 {
+        font-size: 34px;
+      }
+
+      .hero p {
+        font-size: 16px;
+      }
+
+      .section-head h2 {
+        font-size: 26px;
+      }
+
+      .status-row,
+      .slot-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">NOISE Relevance</div>
+        <nav aria-label="Page sections">
+          <a href="#eligibility">Eligibility</a>
+          <a href="#surface">Surface</a>
+          <a href="#pools">Pools</a>
+          <a href="#score">Scoring</a>
+          <a href="#mixing">Re-ranking</a>
+          <a href="#feed">Serving</a>
+          <a href="#curation">Curation</a>
+          <a href="#terminology">Terms</a>
+        </nav>
+      </div>
+    </div>
+
+    <header>
+      <div class="hero">
+        <div>
+          <h1>NOISE Relevance Algorithm</h1>
+          <p>A staged system for routing cultural trends, scoring eligible candidates, and serving the one-at-a-time feed.</p>
+          <div class="hero-actions">
+            <a class="btn" href="#eligibility">Start</a>
+          </div>
+        </div>
+        <aside class="shape-card" aria-label="Final shape">
+          <ol class="shape-list">
+            <li>Eligibility Routing</li>
+            <li>Surface Routing</li>
+            <li>Candidate Pool Assignment</li>
+            <li>Relevance Scoring</li>
+            <li>Feed Re-ranking &amp; Mixing</li>
+            <li>Feed Serving</li>
+          </ol>
+        </aside>
+      </div>
+    </header>
+
+    <main>
+      <section id="eligibility">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <h2>Eligibility Routing</h2>
+              <p>Assigns the first eligibility status for a trend: Block, Hold, Cap, or Pass.</p>
+            </div>
+          </div>
+          <div class="section-grid">
+            <div class="explorer" data-root="eligibilityRoot" aria-label="Eligibility routing explorer"></div>
+            <aside class="sim-card" aria-label="Eligibility routing simulator">
+              <h3>Eligibility Routing Simulator</h3>
+              <p>Toggle checks to see which status the trend receives.</p>
+              <div class="control-stack">
+                <label class="check-field"><input id="eligUnsafe" type="checkbox">Unsafe, spam, duplicate, invalid, or policy issue</label>
+                <label class="check-field"><input id="eligManipulation" type="checkbox">Severe manipulation risk</label>
+                <label class="field">Trend definition
+                  <select id="eligDefinition">
+                    <option value="clear">Clear and specific</option>
+                    <option value="weak">Weak but understandable</option>
+                    <option value="unclear">Unclear or missing</option>
+                  </select>
+                </label>
+                <label class="field">Evidence
+                  <select id="eligEvidence">
+                    <option value="enough">Enough basic evidence</option>
+                    <option value="thin">Thin evidence</option>
+                    <option value="missing">Missing basic evidence</option>
+                  </select>
+                </label>
+              </div>
+              <div class="result-panel">
+                <div class="result-main"><strong id="eligResult">Pass</strong><span id="eligRoute">normal distribution</span></div>
+                <p id="eligReason">This trend clears the first routing check.</p>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section id="surface">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <h2>Surface Routing</h2>
+              <p>Returns the route set after Eligibility Routing: which public surfaces can show a trend, and whether curators need to improve it.</p>
+            </div>
+          </div>
+          <div class="section-grid">
+            <div class="explorer" data-root="surfaceRoot" aria-label="Surface routing explorer"></div>
+            <aside class="sim-card" aria-label="Surface routing simulator">
+              <h3>Surface Routing Simulator</h3>
+              <p>Test which routes become active for a trend after Eligibility Routing.</p>
+              <div class="control-stack">
+                <label class="field">Eligibility Status
+                  <select id="surfaceEligibility">
+                    <option value="pass">Pass</option>
+                    <option value="cap">Cap</option>
+                    <option value="hold">Hold</option>
+                  </select>
+                </label>
+                <label class="field">Visual Readiness <small><span id="visualValue">78</span>/100</small>
+                  <input id="visualRange" type="range" min="0" max="100" value="78">
+                </label>
+                <label class="field">Text Readiness <small><span id="textValue">64</span>/100</small>
+                  <input id="textRange" type="range" min="0" max="100" value="64">
+                </label>
+                <label class="field">Context Sufficiency <small><span id="contextValue">70</span>/100</small>
+                  <input id="contextRange" type="range" min="0" max="100" value="70">
+                  <small>High-level control for the weighted context formula.</small>
+                </label>
+                <label class="field">Coverage Sufficiency <small><span id="coverageValue">80</span>/100</small>
+                  <input id="coverageRange" type="range" min="0" max="100" value="80">
+                </label>
+                <label class="check-field"><input id="hardDisplayIssue" type="checkbox">Hard display issue</label>
+              </div>
+              <div class="result-panel">
+                <div class="route-list" aria-label="Surface routing outputs">
+                  <div class="route-item">
+                    <div>
+                      <strong>Main Swipe Feed</strong>
+                      <p id="mainRouteReason">Presentation and context clear the public feed thresholds.</p>
+                    </div>
+                    <span class="route-pill active" id="mainRouteState">eligible</span>
+                  </div>
+                  <div class="route-item">
+                    <div>
+                      <strong>Search / Detail</strong>
+                      <p id="detailRouteReason">Context clears the detail threshold.</p>
+                    </div>
+                    <span class="route-pill active" id="detailRouteState">eligible</span>
+                  </div>
+                  <div class="route-item">
+                    <div>
+                      <strong>Curator Queue</strong>
+                      <p id="queueRouteReason">No curator work route is needed from these inputs.</p>
+                    </div>
+                    <span class="route-pill" id="queueRouteState">not routed</span>
+                  </div>
+                </div>
+                <div class="derived-values" aria-label="Derived surface values">
+                  <div class="derived-value"><span>Display Readiness</span><strong id="displayReadinessValue">78</strong></div>
+                  <div class="derived-value"><span>Coverage Multiplier</span><strong id="coverageMultiplierValue">0.94</strong></div>
+                  <div class="derived-value"><span>Presentation Readiness</span><strong id="surfacePresentationValue">73</strong></div>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section id="pools">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <h2>Candidate Pool Assignment</h2>
+              <p>Assigns eligible trends to internal pools that explain why they should compete for distribution.</p>
+            </div>
+          </div>
+          <div class="section-grid">
+            <div class="explorer" data-root="poolRoot" aria-label="Candidate pool explorer"></div>
+            <aside class="sim-card" aria-label="Candidate pool assignment simulator">
+              <h3>Candidate Pool Simulator</h3>
+              <p>Test which internal distribution reasons become active for a trend.</p>
+              <div class="control-stack">
+                <label class="field">Base Cultural Score <small><span id="poolRelevanceValue">78</span>/100</small>
+                  <input class="pool-input" id="poolRelevance" type="range" min="0" max="100" value="78">
+                </label>
+                <label class="field">Momentum Direction
+                  <select class="pool-input" id="poolDirection">
+                    <option value="rising">Rising</option>
+                    <option value="falling">Falling</option>
+                    <option value="flat">Flat</option>
+                  </select>
+                </label>
+                <label class="field">Momentum Intensity <small><span id="poolMomentumValue">72</span>/100</small>
+                  <input class="pool-input" id="poolMomentum" type="range" min="0" max="100" value="72">
+                </label>
+                <label class="field">Market Conviction <small><span id="poolMarketValue">64</span>/100</small>
+                  <input class="pool-input" id="poolMarket" type="range" min="0" max="100" value="64">
+                </label>
+                <label class="field">Confidence Multiplier <small><span id="poolConfidenceValue">0.82</span></small>
+                  <input class="pool-input" id="poolConfidence" type="range" min="0" max="100" value="68">
+                </label>
+                <label class="field">Presentation Readiness <small><span id="poolPresentationValue">74</span>/100</small>
+                  <input class="pool-input" id="poolPresentation" type="range" min="0" max="100" value="74">
+                </label>
+                <label class="field">Context Sufficiency <small><span id="poolContextValue">70</span>/100</small>
+                  <input class="pool-input" id="poolContext" type="range" min="0" max="100" value="70">
+                </label>
+                <label class="field">Curation Authority <small><span id="poolCurationValue">58</span>/100</small>
+                  <input class="pool-input" id="poolCuration" type="range" min="0" max="100" value="58">
+                </label>
+                <label class="field">Niche Intensity <small><span id="poolNicheValue">52</span>/100</small>
+                  <input class="pool-input" id="poolNiche" type="range" min="0" max="100" value="52">
+                </label>
+                <label class="field">User Affinity <small><span id="poolAffinityValue">40</span>/100</small>
+                  <input class="pool-input" id="poolAffinity" type="range" min="0" max="100" value="40">
+                </label>
+              </div>
+              <div class="result-panel">
+                <div class="route-list" aria-label="Candidate pool outputs">
+                  <div class="route-item">
+                    <div><strong>Top Now</strong><p id="poolTopReason">Base Cultural Score, confidence, and presentation are strong.</p></div>
+                    <span class="route-pill active" id="poolTopState">assigned</span>
+                  </div>
+                  <div class="route-item">
+                    <div><strong>Rising Fast</strong><p id="poolRisingReason">Rising momentum is strong enough for this pool.</p></div>
+                    <span class="route-pill active" id="poolRisingState">assigned</span>
+                  </div>
+                  <div class="route-item">
+                    <div><strong>Falling Fast</strong><p id="poolFallingReason">Falling momentum or market conviction is not strong enough.</p></div>
+                    <span class="route-pill" id="poolFallingState">not assigned</span>
+                  </div>
+                  <div class="route-item">
+                    <div><strong>Early / Niche</strong><p id="poolEarlyReason">Niche or curator signal is not strong enough.</p></div>
+                    <span class="route-pill" id="poolEarlyState">not assigned</span>
+                  </div>
+                  <div class="route-item">
+                    <div><strong>Personal</strong><p id="poolPersonalReason">User affinity is below the personal threshold.</p></div>
+                    <span class="route-pill" id="poolPersonalState">not assigned</span>
+                  </div>
+                  <div class="route-item">
+                    <div><strong>Needs Better Content</strong><p id="poolNeedsReason">Readiness Gap is below the content-improvement threshold.</p></div>
+                    <span class="route-pill" id="poolNeedsState">not assigned</span>
+                  </div>
+                </div>
+                <div class="derived-values" aria-label="Candidate pool derived values">
+                  <div class="derived-value"><span>Readiness Gap</span><strong id="poolReadinessGapValue">30</strong></div>
+                  <div class="derived-value"><span>Assigned Pools</span><strong id="poolAssignedCount">2</strong></div>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section id="score">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <h2>Relevance Scoring</h2>
+              <p>Calculates the NOISE Relevance Score for eligible trends. Multipliers adjust ranking strength based on quality, presentation, integrity, and confidence.</p>
+            </div>
+          </div>
+          <div class="section-grid">
+            <div class="explorer" data-root="scoreRoot" aria-label="Relevance scoring explorer"></div>
+            <aside class="sim-card" aria-label="Relevance scoring simulator">
+              <h3>Relevance Scoring Simulator</h3>
+              <p>Change each input to see how multipliers affect an eligible trend.</p>
+              <div class="control-stack">
+                <label class="field">Base Cultural Score <small><span id="baseValue">78</span>/100</small>
+                  <input class="score-input" id="baseRange" type="range" min="0" max="100" value="78">
+                  <small>High means the trend has strong cultural signal before score multipliers are applied.</small>
+                </label>
+                <label class="field">Quality Score <small><span id="qualityScoreValue">88</span>/100</small>
+                  <input class="score-input" id="qualityRange" type="range" min="0" max="100" value="88">
+                  <small>High means the trend is clearly defined, supported, and editorially useful.</small>
+                </label>
+                <label class="field">Presentation Readiness <small><span id="presentationReadinessValue">82</span>/100</small>
+                  <input class="score-input" id="presentationRange" type="range" min="0" max="100" value="82">
+                  <small>High means the trend can be shown cleanly in the product experience.</small>
+                </label>
+                <label class="field">Manipulation Risk <small><span id="manipulationRiskValue">0.06</span></small>
+                  <input class="score-input" id="riskRange" type="range" min="0" max="100" value="6">
+                  <small>High means suspicious activity reduces rank more strongly.</small>
+                </label>
+                <label class="field">Raw Confidence <small><span id="rawConfidenceValue">0.76</span></small>
+                  <input class="score-input" id="confidenceRange" type="range" min="0" max="100" value="76">
+                  <small>High means the system has enough adjusted evidence for this kind of trend.</small>
+                </label>
+              </div>
+              <div class="result-panel">
+                <div class="result-main"><strong id="scoreResult">57</strong><span>final score</span></div>
+                <div class="bar"><span id="scoreBar"></span></div>
+                <div class="derived-values" aria-label="Relevance score derived values">
+                  <div class="derived-value"><span>Quality Multiplier</span><strong id="qualityMultiplierValue">0.96</strong></div>
+                  <div class="derived-value"><span>Presentation Multiplier</span><strong id="presentationMultiplierValue">0.93</strong></div>
+                  <div class="derived-value"><span>Integrity Multiplier</span><strong id="integrityMultiplierValue">0.94</strong></div>
+                  <div class="derived-value"><span>Confidence Multiplier</span><strong id="confidenceMultiplierValue">0.87</strong></div>
+                  <div class="derived-value"><span>Combined Multiplier</span><strong id="combinedMultiplierValue">0.73</strong></div>
+                </div>
+                <p id="scoreReason">A strong final score needs the base cultural signal and the four multipliers to hold up.</p>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section id="mixing">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <h2>Feed Re-ranking &amp; Mixing</h2>
+              <p>Adjusts ranked candidates with caps, pool budgets, exploration, repetition control, and integrity constraints.</p>
+            </div>
+          </div>
+          <div class="section-grid">
+            <div class="explorer" data-root="mixingRoot" aria-label="Feed re-ranking and mixing explorer"></div>
+            <aside class="sim-card" aria-label="Feed re-ranking and mixing simulator">
+              <h3>Re-ranking &amp; Mixing Simulator</h3>
+              <p>Adjust target weights for a 20-item feed window. Weights are normalized automatically.</p>
+              <div class="control-stack">
+                <label class="field">Top Now Weight <small><span id="topMixValue">50</span></small>
+                  <input class="mix-input" id="topMix" type="range" min="0" max="100" value="50">
+                </label>
+                <label class="field">Rising Fast Weight <small><span id="risingMixValue">15</span></small>
+                  <input class="mix-input" id="risingMix" type="range" min="0" max="100" value="15">
+                </label>
+                <label class="field">Falling Fast Weight <small><span id="fallingMixValue">10</span></small>
+                  <input class="mix-input" id="fallingMix" type="range" min="0" max="100" value="10">
+                </label>
+                <label class="field">Early / Niche Weight <small><span id="earlyMixValue">10</span></small>
+                  <input class="mix-input" id="earlyMix" type="range" min="0" max="100" value="10">
+                </label>
+                <label class="field">Personal Weight <small><span id="personalMixValue">10</span></small>
+                  <input class="mix-input" id="personalMix" type="range" min="0" max="100" value="10">
+                </label>
+                <label class="field">Exploration Weight <small><span id="exploreMixValue">5</span></small>
+                  <input class="mix-input" id="exploreMix" type="range" min="0" max="100" value="5">
+                </label>
+              </div>
+              <div class="result-panel">
+                <div class="result-main"><strong>20</strong><span>feed slots</span></div>
+                <div class="slots" id="slotResult"></div>
+                <div class="derived-values" aria-label="Feed mixing derived values">
+                  <div class="derived-value"><span>Needs Better Content</span><strong>curator queue</strong></div>
+                  <div class="derived-value"><span>Duplicate placements</span><strong>removed</strong></div>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section id="feed">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <h2>Feed Serving</h2>
+              <p>Returns the ordered sequence shown one item at a time, preserving eligibility, surface quality, pool intent, and repetition controls.</p>
+            </div>
+          </div>
+          <div class="section-grid">
+            <div class="explorer" data-root="feedRoot" aria-label="Feed serving explorer"></div>
+            <aside class="sim-card" aria-label="Feed serving simulator">
+              <h3>Feed Serving Simulator</h3>
+              <p>Check whether the next candidate can be served now.</p>
+              <div class="control-stack">
+                <label class="field">Adjusted Pool Rank Score <small><span id="servingRankValue">72</span>/100</small>
+                  <input class="serving-input" id="servingRank" type="range" min="0" max="100" value="72">
+                </label>
+                <label class="check-field"><input class="serving-input" id="servingSurface" type="checkbox" checked>Main Swipe Feed eligible</label>
+                <label class="check-field"><input class="serving-input" id="servingSlot" type="checkbox" checked>Open slot budget</label>
+                <label class="check-field"><input class="serving-input" id="servingCap" type="checkbox" checked>Cap ceiling available</label>
+                <label class="check-field"><input class="serving-input" id="servingDuplicate" type="checkbox" checked>Not already served in this window</label>
+                <label class="check-field"><input class="serving-input" id="servingContent" type="checkbox" checked>Content still available</label>
+              </div>
+              <div class="result-panel">
+                <div class="result-main"><strong id="servingResult">Serve</strong><span id="servingAction">next item</span></div>
+                <div class="derived-values" aria-label="Feed serving derived values">
+                  <div class="derived-value"><span>Serving Priority</span><strong id="servingPriorityValue">72</strong></div>
+                  <div class="derived-value"><span>Feedback Logging</span><strong id="servingLogValue">enabled</strong></div>
+                </div>
+                <p id="servingReason">This candidate passes the final serving checks.</p>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section id="curation">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <h2>Curation Opportunity</h2>
+              <p>This layer finds important trends that need better content before NOISE should distribute them heavily.</p>
+            </div>
+          </div>
+          <div class="section-grid">
+            <div class="explorer" data-root="curationRoot" aria-label="Curation opportunity explorer"></div>
+            <aside class="sim-card" aria-label="Curation opportunity simulator">
+              <h3>Curation Simulator</h3>
+              <p>Find high-potential trends where presentation or context is missing.</p>
+              <div class="control-stack">
+                <label class="field">Base Cultural Score <small><span id="curationRelevanceValue">82</span>/100</small>
+                  <input id="curationRelevance" type="range" min="0" max="100" value="82">
+                  <small>High means the trend is culturally important enough to be worth improving.</small>
+                </label>
+                <label class="field">Presentation Readiness <small><span id="curationPresentationValue">38</span>/100</small>
+                  <input id="curationPresentation" type="range" min="0" max="100" value="38">
+                  <small>Low means the trend needs better visual or text presentation.</small>
+                </label>
+                <label class="field">Context Sufficiency <small><span id="curationContextValue">64</span>/100</small>
+                  <input id="curationContext" type="range" min="0" max="100" value="64">
+                  <small>Low means users need better explanation, sources, or curator context.</small>
+                </label>
+              </div>
+              <div class="result-panel">
+                <div class="result-main"><strong id="curationScore">51</strong><span>priority score</span></div>
+                <div class="bar amber"><span id="curationBar"></span></div>
+                <div class="derived-values" aria-label="Curation opportunity derived values">
+                  <div class="derived-value"><span>Priority Tier</span><strong id="curationTierValue">high</strong></div>
+                  <div class="derived-value"><span>Presentation Gap</span><strong id="curationPresentationGapValue">0.62</strong></div>
+                  <div class="derived-value"><span>Context Gap</span><strong id="curationContextGapValue">0.36</strong></div>
+                  <div class="derived-value"><span>Readiness Gap</span><strong id="curationReadinessValue">0.62</strong></div>
+                </div>
+                <p id="curationReason">High priority: strong cultural signal and a clear readiness gap.</p>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section id="terminology">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <h2>Terminology</h2>
+              <p>Alphabetical reference for the terms used in this proposal.</p>
+            </div>
+          </div>
+          <div class="terms-grid">
+            <article class="term-card"><h3>Adjusted Evidence</h3><p>Useful evidence after quality, freshness, duplication, and concentration adjustments.</p></article>
+            <article class="term-card"><h3>Adjusted Pool Rank Score</h3><p>The placement score after pool fit and repeat control are applied.</p></article>
+            <article class="term-card"><h3>Attention</h3><p>Current user attention, based on fresh and meaningful engagement.</p></article>
+            <article class="term-card"><h3>Base Cultural Score</h3><p>The weighted cultural relevance value before multipliers are applied.</p></article>
+            <article class="term-card"><h3>Block</h3><p>An eligibility status that stops a trend from public discovery.</p></article>
+            <article class="term-card"><h3>Breadth</h3><p>How widely interest spreads across users, communities, and sources.</p></article>
+            <article class="term-card"><h3>Candidate Pool</h3><p>A group of trends competing for feed space for the same reason.</p></article>
+            <article class="term-card"><h3>Candidate Pool Assignment</h3><p>The stage that assigns eligible trends to one or more internal pools.</p></article>
+            <article class="term-card"><h3>Cap</h3><p>An eligibility status for valid trends that should have limited distribution.</p></article>
+            <article class="term-card"><h3>Cap Availability</h3><p>Whether a trend still has exposure available under its cap ceiling.</p></article>
+            <article class="term-card"><h3>Cap Ceiling</h3><p>The strongest active exposure limit for a trend.</p></article>
+            <article class="term-card"><h3>Caps</h3><p>Feed limits that stop valid but imperfect trends from taking too much space.</p></article>
+            <article class="term-card"><h3>Confidence Multiplier</h3><p>A bounded multiplier that lowers ranking strength when evidence is thin.</p></article>
+            <article class="term-card"><h3>Constraint</h3><p>A rule that limits placement, exposure, repetition, or another feed behavior.</p></article>
+            <article class="term-card"><h3>Content Availability</h3><p>Whether the app can still render the content needed to serve an item.</p></article>
+            <article class="term-card"><h3>Content Gaps</h3><p>Missing media, sources, summary, explanation, or display coverage.</p></article>
+            <article class="term-card"><h3>Context Gap</h3><p>The missing context readiness, calculated from Context Sufficiency.</p></article>
+            <article class="term-card"><h3>Context Sufficiency</h3><p>Whether the trend has enough explanation, sources, and framing to make sense.</p></article>
+            <article class="term-card"><h3>Coordination Risk</h3><p>The likelihood that activity is coordinated rather than organic.</p></article>
+            <article class="term-card"><h3>Coverage Multiplier</h3><p>A bounded modifier based on how much usable display material exists.</p></article>
+            <article class="term-card"><h3>Coverage Sufficiency</h3><p>Whether NOISE has enough usable display options for the trend.</p></article>
+            <article class="term-card"><h3>Curation Authority</h3><p>The contribution of trusted curator judgment and review signals.</p></article>
+            <article class="term-card"><h3>Curation Opportunity</h3><p>A priority score for culturally relevant trends that need better content.</p></article>
+            <article class="term-card"><h3>Curator Explanation</h3><p>Curator reasoning that explains why a trend matters.</p></article>
+            <article class="term-card"><h3>Curator Queue</h3><p>The route for trends that need curator review or improvement.</p></article>
+            <article class="term-card"><h3>Curator Reward Score</h3><p>A score for useful curator work after the work is done.</p></article>
+            <article class="term-card"><h3>Deduplication</h3><p>A rule that prevents the same trend from appearing twice in one feed window.</p></article>
+            <article class="term-card"><h3>Definition Quality</h3><p>How clearly and specifically the trend is defined.</p></article>
+            <article class="term-card"><h3>Discussion Quality</h3><p>The usefulness of posts, comments, sources, and explanations around a trend.</p></article>
+            <article class="term-card"><h3>Display Readiness</h3><p>The best available UI representation for a trend.</p></article>
+            <article class="term-card"><h3>Duplicate Check</h3><p>A serving check that prevents repeating the same Trend ID.</p></article>
+            <article class="term-card"><h3>Duplicate Reversals</h3><p>A penalty input for curator work reversed because it duplicated existing content.</p></article>
+            <article class="term-card"><h3>Early / Niche</h3><p>A pool for promising trends with focused early interest.</p></article>
+            <article class="term-card"><h3>Editorial Usefulness</h3><p>Whether the trend entry is understandable and useful to users.</p></article>
+            <article class="term-card"><h3>Eligibility Routing</h3><p>The first routing stage: Block, Hold, Cap, or Pass.</p></article>
+            <article class="term-card"><h3>Eligibility Status</h3><p>The status assigned by Eligibility Routing.</p></article>
+            <article class="term-card"><h3>Evidence Quality</h3><p>How credible, relevant, fresh, and sufficient the evidence is.</p></article>
+            <article class="term-card"><h3>Evidence Target</h3><p>The evidence level where confidence is considered mature for that category.</p></article>
+            <article class="term-card"><h3>Exploration</h3><p>Controlled feed space for promising but under-tested trends.</p></article>
+            <article class="term-card"><h3>Falling Fast</h3><p>A pool for trends losing relevance quickly in a meaningful way.</p></article>
+            <article class="term-card"><h3>Feed Re-ranking &amp; Mixing</h3><p>The stage that turns scored candidates into a balanced feed window.</p></article>
+            <article class="term-card"><h3>Feed Serving</h3><p>The final step that returns the next valid item to the app.</p></article>
+            <article class="term-card"><h3>Feed Window</h3><p>The internal set of feed positions being planned at once.</p></article>
+            <article class="term-card"><h3>Feed Window Size</h3><p>The number of feed positions being planned in a window.</p></article>
+            <article class="term-card"><h3>Final Candidate Queue</h3><p>The ordered list produced before items are served.</p></article>
+            <article class="term-card"><h3>Flags / Reversals</h3><p>A reward penalty for moderation flags, duplicate reversals, low-effort uploads, or misleading context.</p></article>
+            <article class="term-card"><h3>Formula</h3><p>A calculation that combines inputs into a new value.</p></article>
+            <article class="term-card"><h3>Hard Display Issue</h3><p>A display problem serious enough to block a public surface.</p></article>
+            <article class="term-card"><h3>Hold</h3><p>An eligibility status for trends that need review or preparation.</p></article>
+            <article class="term-card"><h3>Integrity Limit</h3><p>An exposure limit that gets stricter as manipulation risk rises.</p></article>
+            <article class="term-card"><h3>Integrity Multiplier</h3><p>A multiplier that reduces ranking strength when manipulation risk exists.</p></article>
+            <article class="term-card"><h3>Low-Effort Uploads</h3><p>A penalty input for shallow or barely useful curator submissions.</p></article>
+            <article class="term-card"><h3>Main Swipe Feed</h3><p>The highest-visibility one-at-a-time discovery surface.</p></article>
+            <article class="term-card"><h3>Manipulation Risk</h3><p>A normalized risk score for artificial or suspicious activity.</p></article>
+            <article class="term-card"><h3>Market Conviction</h3><p>The strength and reliability of buy/short behavior.</p></article>
+            <article class="term-card"><h3>Metric</h3><p>A measured or calculated value used by a formula or rule.</p></article>
+            <article class="term-card"><h3>Misleading Context</h3><p>A penalty input for inaccurate or unsupported curator framing.</p></article>
+            <article class="term-card"><h3>Moderation Flags</h3><p>A penalty input for safety, policy, or trust issues.</p></article>
+            <article class="term-card"><h3>Momentum Direction</h3><p>Whether movement is rising, falling, or flat.</p></article>
+            <article class="term-card"><h3>Momentum Intensity</h3><p>How unusually fast relevance is moving.</p></article>
+            <article class="term-card"><h3>Multiplier</h3><p>A factor that scales ranking strength.</p></article>
+            <article class="term-card"><h3>Needs Better Content</h3><p>A pool for important trends that need better presentation or context.</p></article>
+            <article class="term-card"><h3>New Quality Value</h3><p>The quality, presentation, or context level after curator work.</p></article>
+            <article class="term-card"><h3>Niche Intensity</h3><p>How strongly a specific community or subculture cares about a trend.</p></article>
+            <article class="term-card"><h3>NOISE Relevance Score</h3><p>The ranking score used to compare eligible trends.</p></article>
+            <article class="term-card"><h3>Open Slot Budget</h3><p>The remaining room a pool has in the current feed window.</p></article>
+            <article class="term-card"><h3>Pass</h3><p>An eligibility status for trends that clear the first routing check.</p></article>
+            <article class="term-card"><h3>Personal</h3><p>A pool for trends with strong user affinity.</p></article>
+            <article class="term-card"><h3>Placement Role</h3><p>The one pool label a trend occupies in a specific feed window.</p></article>
+            <article class="term-card"><h3>Placement Role Selection</h3><p>The rule that chooses one placement role for a multi-pool trend.</p></article>
+            <article class="term-card"><h3>Pool Allocation</h3><p>The process of assigning feed slots to pool reasons using target weights.</p></article>
+            <article class="term-card"><h3>Pool Fit</h3><p>How strongly a trend matches a specific candidate pool.</p></article>
+            <article class="term-card"><h3>Pool Rank Score</h3><p>The score used to order candidates inside one placement role.</p></article>
+            <article class="term-card"><h3>Presentation Gap</h3><p>The missing presentation readiness.</p></article>
+            <article class="term-card"><h3>Presentation Multiplier</h3><p>A bounded multiplier based on Presentation Readiness.</p></article>
+            <article class="term-card"><h3>Presentation Readiness</h3><p>Whether NOISE has a strong visual or text display path.</p></article>
+            <article class="term-card"><h3>Previous Quality Value</h3><p>The quality, presentation, or context level before curator work.</p></article>
+            <article class="term-card"><h3>Quality Improvement</h3><p>The before-and-after improvement created by curator work.</p></article>
+            <article class="term-card"><h3>Quality Limit</h3><p>An exposure limit based on quality or presentation weakness.</p></article>
+            <article class="term-card"><h3>Quality Multiplier</h3><p>A bounded ranking adjustment for valid trends with quality issues.</p></article>
+            <article class="term-card"><h3>Quality Score</h3><p>The 0-100 quality value used to calculate the Quality Multiplier.</p></article>
+            <article class="term-card"><h3>Rank Inside Pool</h3><p>The rule that orders candidates within a selected pool.</p></article>
+            <article class="term-card"><h3>Raw Confidence</h3><p>The evidence maturity value before the bounded Confidence Multiplier.</p></article>
+            <article class="term-card"><h3>Readiness Gap</h3><p>The largest missing readiness area: presentation or context.</p></article>
+            <article class="term-card"><h3>Relevance Scoring</h3><p>The stage that calculates the NOISE Relevance Score.</p></article>
+            <article class="term-card"><h3>Repeat Control</h3><p>A rule that spaces out similar or recently seen items.</p></article>
+            <article class="term-card"><h3>Repeat Multiplier</h3><p>A multiplier that lowers ranking strength for repetitive items.</p></article>
+            <article class="term-card"><h3>Review Approval</h3><p>A reward input for curator work approved as useful.</p></article>
+            <article class="term-card"><h3>Reward Factor</h3><p>A component that increases or reduces the curator reward calculation.</p></article>
+            <article class="term-card"><h3>Rising Fast</h3><p>A pool for trends gaining relevance quickly.</p></article>
+            <article class="term-card"><h3>Route Set</h3><p>The list of surfaces or work queues selected by a routing step.</p></article>
+            <article class="term-card"><h3>Rule</h3><p>A condition or constraint that changes routing, placement, or exposure.</p></article>
+            <article class="term-card"><h3>Search / Detail</h3><p>A lower-risk surface where users can inspect context.</p></article>
+            <article class="term-card"><h3>Serving Checks</h3><p>Final pass/skip checks before the app receives the next feed item.</p></article>
+            <article class="term-card"><h3>Serving Feedback Log</h3><p>The event log created after serving an item.</p></article>
+            <article class="term-card"><h3>Signal</h3><p>Evidence used by scoring or routing.</p></article>
+            <article class="term-card"><h3>Slot Budget</h3><p>The number of feed positions available for a pool.</p></article>
+            <article class="term-card"><h3>Source Context</h3><p>Whether sources support the trend explanation.</p></article>
+            <article class="term-card"><h3>Spam Risk</h3><p>The likelihood that activity is low-quality, automated, or abusive.</p></article>
+            <article class="term-card"><h3>Stage</h3><p>A step in the algorithm pipeline with a specific job.</p></article>
+            <article class="term-card"><h3>Status</h3><p>A categorical output assigned by a routing step.</p></article>
+            <article class="term-card"><h3>Status Limit</h3><p>An exposure limit based on Eligibility Status.</p></article>
+            <article class="term-card"><h3>Successful Publication</h3><p>A reward input for work that unlocks a surface or stronger distribution.</p></article>
+            <article class="term-card"><h3>Summary Usefulness</h3><p>Whether the short explanation helps users understand the trend.</p></article>
+            <article class="term-card"><h3>Surface Routing</h3><p>The stage that decides where a trend can appear or where it needs work.</p></article>
+            <article class="term-card"><h3>Target Slot Weights</h3><p>Tunable weights that control each pool's share of the feed window.</p></article>
+            <article class="term-card"><h3>Text Readiness</h3><p>Whether NOISE can present the trend well through text.</p></article>
+            <article class="term-card"><h3>Title Clarity</h3><p>Whether the trend name is specific, readable, and unambiguous.</p></article>
+            <article class="term-card"><h3>Top Now</h3><p>A pool for the strongest current cultural trends.</p></article>
+            <article class="term-card"><h3>User Affinity</h3><p>How strongly a trend matches a user's interests or behavior.</p></article>
+            <article class="term-card"><h3>User Response</h3><p>A reward input based on post-publication engagement.</p></article>
+            <article class="term-card"><h3>Visual Readiness</h3><p>How well images or video can represent the trend.</p></article>
+            <article class="term-card"><h3>Wash-Trading Risk</h3><p>The likelihood that market activity is artificially created.</p></article>
+            <article class="term-card"><h3>Whale Concentration</h3><p>How much activity depends on a small number of large actors.</p></article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      © 2026 Prophecy
+    </footer>
+  </div>
+
+  <script>
+    const logicNodes = {
+      eligibilityRoot: {
+        kind: "Stage",
+        title: "Eligibility Routing",
+        parts: ["Output:\nEligibility Status = ", { id: "statusBlock", label: "Block" }, " | ", { id: "statusHold", label: "Hold" }, " | ", { id: "statusCap", label: "Cap" }, " | ", { id: "statusPass", label: "Pass" }],
+        summary: "The first routing status for a trend.",
+        logic: "Hard routing keeps unsafe, duplicate, invalid, or severely manipulated trends out of public distribution.",
+        example: "A duplicate trend is Block. A vague but potentially real trend is Hold. A valid but weakly supported trend is Cap.",
+      },
+      statusBlock: {
+        kind: "Status",
+        title: "Block",
+        parts: ["Output:\nStatus = Block\nRoute = exclude | merge | remove | manual review"],
+        summary: "Block stops the trend from entering public discovery.",
+        logic: "Block is used for trends with a hard issue: unsafe content, duplicates, spam, invalid topics, or severe manipulation.",
+        example: "Unsafe content, duplicates, spam, invalid trends, or severe manipulation route to Block.",
+      },
+      statusHold: {
+        kind: "Status",
+        title: "Hold",
+        parts: ["Output:\nStatus = Hold\nRoute = review | curator queue"],
+        summary: "Hold keeps a potentially valid trend in review.",
+        logic: "Hold is used when the topic may be real, but the definition, evidence, or preparation is not ready.",
+        example: "A trend with an unclear definition or missing basic evidence can wait for curator improvement.",
+      },
+      statusCap: {
+        kind: "Status",
+        title: "Cap",
+        parts: ["Output:\nStatus = Cap\nRoute = limited distribution"],
+        summary: "Cap allows a valid trend with limits.",
+        logic: "Cap fits trends with thin evidence, unclear framing, or quality concerns. Limited distribution means controlled exposure or placement while the trend improves.",
+        example: "A real trend with thin evidence can appear in lower-risk slots while curators improve it.",
+      },
+      statusPass: {
+        kind: "Status",
+        title: "Pass",
+        parts: ["Output:\nStatus = Pass\nRoute = normal distribution"],
+        summary: "Pass means the trend clears the first routing check.",
+        logic: "Pass is used when the trend is clear, valid, non-duplicate, and has no major safety or manipulation issue.",
+        example: "A clear, non-duplicate trend with enough evidence and no major risk can pass.",
+      },
+
+      surfaceRoot: {
+        kind: "Stage",
+        title: "Surface Routing",
+        parts: ["Output:\n", { id: "surfaceMain", label: "Main Swipe Feed" }, " = eligible | not eligible\n", { id: "surfaceSearch", label: "Search / Detail" }, " = eligible | not eligible\n", { id: "surfaceQueue", label: "Curator Queue" }, " = routed | not routed"],
+        summary: "Returns the surfaces where a trend can appear or needs work.",
+        logic: "Surface Routing assumes the first eligibility decision already happened. Public surfaces receive Pass and Cap trends; Hold trends can still enter curator work.",
+        example: "A trend can be available on Search / Detail while also routed to the Curator Queue for better presentation.",
+        rows: [["Output type", "Route set"], ["Decision style", "Multiple routes can be active"]]
+      },
+      surfaceMain: {
+        kind: "Rule",
+        title: "Main Swipe Feed",
+        parts: ["Output: eligible | not eligible\nEligible when:\n", { id: "presentationFormula", label: "Presentation Readiness" }, " >= main-feed threshold\nAND ", { id: "contextSufficiency", label: "Context Sufficiency" }, " >= lightweight context threshold\nAND ", { id: "hardSurfaceIssue", label: "Hard Display Issue" }, " = no"],
+        summary: "Allows the trend into the highest-visibility feed surface.",
+        logic: "This route checks whether the trend can be shown well as a one-at-a-time feed item and has enough context to make sense.",
+        example: "A text-first trend can qualify with a polished text card, useful sources, and enough supporting context.",
+        rows: [["Route result", "Eligible or not eligible"], ["Minimum", "Strong display, enough context, and no hard display issue"]]
+      },
+      surfaceSearch: {
+        kind: "Rule",
+        title: "Search / Detail",
+        parts: ["Output: eligible | not eligible\nEligible when:\n", { id: "contextSufficiency", label: "Context Sufficiency" }, " >= detail threshold\nAND ", { id: "hardSurfaceIssue", label: "Hard Display Issue" }, " = no"],
+        summary: "Allows the trend into lower-risk surfaces where users can inspect context.",
+        logic: "Search and detail pages can use more text and source context than the main swipe feed.",
+        example: "A trend with useful sources but weak visual assets can still have a detail page.",
+        rows: [["Route result", "Eligible or not eligible"], ["Minimum", "Clear enough context and no hard display issue"]]
+      },
+      surfaceQueue: {
+        kind: "Rule",
+        title: "Curator Queue",
+        parts: ["Output: routed | not routed\nRouted when:\nEligibility Status = Hold\nOR ", { id: "presentationFormula", label: "Presentation Readiness" }, " < target\nOR ", { id: "contextSufficiency", label: "Context Sufficiency" }, " < target\nOR ", { id: "hardSurfaceIssue", label: "Hard Display Issue" }, " = yes\nOR ", { id: "contentGap", label: "Content Gaps" }, " = yes"],
+        summary: "Turns missing quality into a clear work opportunity.",
+        logic: "The curator queue is where potentially useful trends go when better media, sources, or framing would unlock stronger distribution.",
+        example: "A culturally relevant trend with no good display format becomes a curation task.",
+        rows: [["Route result", "Routed or not routed"], ["Curator action", "Improve media, sources, or context"]]
+      },
+      presentationFormula: {
+        kind: "Formula",
+        title: "Presentation Readiness",
+        parts: ["Presentation Readiness = ", { id: "displayReadiness", label: "Display Readiness" }, " × ", { id: "coverageMultiplier", label: "Coverage Multiplier" }],
+        summary: "Measures whether NOISE has a strong display format, lightly adjusted by how robust the available display material is.",
+        logic: "Sources support context, not display. Presentation Readiness is therefore based on visual or text display quality, with coverage as a bounded modifier.",
+        example: "A poem, tweet, phrase, or concept can pass through a polished text card.",
+        rows: [["Range", "0 to 100"], ["Main-feed target", "Presentation Readiness >= 70 in the simulator"]]
+      },
+      displayReadiness: {
+        kind: "Formula",
+        title: "Display Readiness",
+        parts: ["Display Readiness = max(", { id: "visualReadiness", label: "Visual Readiness" }, ", ", { id: "textReadiness", label: "Text Readiness" }, ")"],
+        summary: "Measures the best available UI representation for the trend.",
+        logic: "The max function is justified here because visual and text are alternative display formats. The trend only needs one strong way to be shown cleanly.",
+        example: "A trend can be visual-first through video or text-first through a polished text card.",
+        rows: [["Range", "0 to 100"], ["Used by", "Presentation Readiness and Content Gaps"]]
+      },
+      coverageMultiplier: {
+        kind: "Formula",
+        title: "Coverage Multiplier",
+        parts: ["Coverage Multiplier = 0.70 + 0.30 × ", { id: "coverageSufficiency", label: "Coverage Sufficiency" }, " / 100"],
+        summary: "Lightly adjusts presentation readiness based on how much usable display material exists.",
+        logic: "Coverage should reduce fragile presentation, but it should not outweigh the actual display format. This keeps coverage bounded between 0.70 and 1.00.",
+        example: "A single good card can still work, but several good display options make the presentation more reliable.",
+        rows: [["Range", "0.70 to 1.00"], ["Used by", "Presentation Readiness"]]
+      },
+      hardSurfaceIssue: {
+        kind: "Rule",
+        title: "Hard Display Issue",
+        parts: ["Output: yes | no\nYes when:\nmedia is unusable\nOR text is unreadable\nOR display would be misleading\nOR the surface cannot present the trend cleanly"],
+        summary: "A presentation problem serious enough to keep the trend out of a public surface.",
+        logic: "This covers cases where a trend may be real, but the available display would make the product feel low quality or misleading.",
+        example: "A distorted image, unreadable text overlay, or unusable aspect ratio can block a public route.",
+        rows: [["Type", "Boolean route input"], ["Action", "Use Curator Queue or a lower-risk surface"]]
+      },
+      contextSufficiency: {
+        kind: "Formula",
+        title: "Context Sufficiency",
+        parts: ["Context Sufficiency =\n0.20 ", { id: "titleClarity", label: "Title Clarity" }, "\n+ 0.30 ", { id: "summaryUsefulness", label: "Summary Usefulness" }, "\n+ 0.30 ", { id: "sourceContext", label: "Source Context" }, "\n+ 0.20 ", { id: "curatorExplanation", label: "Curator Explanation" }],
+        summary: "Measures whether the trend has enough explanation for search or detail surfaces.",
+        logic: "This weighted average stays on a 0-100 scale. Summary and source context get the highest starting weights because they usually determine whether users understand why the trend matters.",
+        example: "A trend with weak media but a strong curator explanation can have enough context.",
+        rows: [["Range", "0 to 100"], ["Use", "Surface routing and curation gaps"]]
+      },
+      contentGap: {
+        kind: "Rule",
+        title: "Content Gaps",
+        parts: ["Output: yes | no\nYes when:\n", { id: "displayReadiness", label: "Display Readiness" }, " < target\nOR ", { id: "sourceContext", label: "Source Context" }, " < target\nOR ", { id: "summaryUsefulness", label: "Summary Usefulness" }, " < target\nOR ", { id: "curatorExplanation", label: "Curator Explanation" }, " < target\nOR ", { id: "coverageSufficiency", label: "Coverage Sufficiency" }, " < target"],
+        summary: "The missing content that limits distribution.",
+        logic: "Content gaps turn into curator tasks: add better media, improve sources, clarify framing, or write useful context.",
+        example: "A trend with strong market and attention signals but bad uploaded media has a presentation gap.",
+        rows: [["Type", "Checklist input"], ["Action", "Create curator task"]]
+      },
+      titleClarity: {
+        kind: "Metric",
+        title: "Title Clarity",
+        parts: ["Range: 0-100\nHigh: specific, readable, and unambiguous\nLow: vague, generic, or confusing"],
+        summary: "Measures whether the trend name tells users what they are looking at.",
+        logic: "A clear title reduces confusion before users read deeper context.",
+        example: "A specific phrase or topic title maps higher than a vague category label.",
+        rows: [["Inputs", "Specificity, readability, ambiguity"], ["Used by", "Context Sufficiency"]]
+      },
+      summaryUsefulness: {
+        kind: "Metric",
+        title: "Summary Usefulness",
+        parts: ["Range: 0-100\nHigh: explains what changed and why it matters\nLow: generic, circular, or missing explanation"],
+        summary: "Measures whether the short explanation helps users understand the trend.",
+        logic: "A useful summary gives context without relying on the user already knowing the trend.",
+        example: "A concise explanation of why a topic is rising maps higher than a generic description.",
+        rows: [["Inputs", "Specificity, framing, usefulness"], ["Used by", "Context Sufficiency and Content Gaps"]]
+      },
+      sourceContext: {
+        kind: "Metric",
+        title: "Source Context",
+        parts: ["Range: 0-100\nHigh: useful, credible, and fresh sources\nLow: thin, stale, or unclear sources"],
+        summary: "Measures whether sources support the trend explanation.",
+        logic: "Sources help users verify why the trend matters and reduce reliance on unsupported claims.",
+        example: "Fresh articles, posts, or references that explain the trend map higher.",
+        rows: [["Inputs", "Source quality, freshness, usefulness"], ["Used by", "Context Sufficiency and Content Gaps"]]
+      },
+      curatorExplanation: {
+        kind: "Metric",
+        title: "Curator Explanation",
+        parts: ["Range: 0-100\nHigh: clear curator reasoning and useful cultural context\nLow: missing, shallow, or unsupported reasoning"],
+        summary: "Measures whether curator notes add useful interpretation.",
+        logic: "Curator explanation is especially useful for early or subtle cultural signals.",
+        example: "A curator note explaining why a niche trend matters maps higher than a short generic note.",
+        rows: [["Inputs", "Reasoning, specificity, evidence"], ["Used by", "Context Sufficiency and Content Gaps"]]
+      },
+      visualReadiness: {
+        kind: "Metric",
+        title: "Visual Readiness",
+        parts: ["Range: 0-100\nHigh: clean, sharp, well-framed media\nLow: blurry, cropped, distracting, low-resolution media"],
+        summary: "Measures how well images or video can represent the trend.",
+        logic: "This input maps media-quality checks into a normalized readiness value.",
+        example: "Clean vertical video maps high; blurry screenshots with text overlays map low.",
+        rows: [["Inputs", "Resolution, aspect ratio, crop, blur, compression, overlays"], ["Used by", "Presentation Readiness"]]
+      },
+      textReadiness: {
+        kind: "Metric",
+        title: "Text Readiness",
+        parts: ["Range: 0-100\nHigh: readable, attributed, well-framed text\nLow: vague, cramped, or contextless text"],
+        summary: "Measures whether NOISE can present a trend well through text.",
+        logic: "This input supports cultural trends that work best as language, framing, or source context.",
+        example: "A quote, poem, phrase, or meme format can be ready through a clean text-first card.",
+        rows: [["Inputs", "Title, framing, attribution, text-card quality"], ["Used by", "Presentation Readiness"]]
+      },
+      coverageSufficiency: {
+        kind: "Metric",
+        title: "Coverage Sufficiency",
+        parts: ["Range: 0-100\nHigh: several usable display options\nLow: one fragile display option or no reliable support"],
+        summary: "Checks whether NOISE has enough usable display material for a stable presentation.",
+        logic: "Coverage is a bounded modifier. It improves confidence in the display setup without replacing display quality itself.",
+        example: "Three usable cards are safer than one fragile screenshot.",
+        rows: [["Inputs", "Usable visual assets, text cards, alternate display options"], ["Used by", "Coverage Multiplier and Content Gaps"]]
+      },
+
+      poolRoot: {
+        kind: "Stage",
+        title: "Candidate Pool Assignment",
+        parts: ["Output:\n", { id: "poolTop", label: "Top Now" }, " = assigned | not assigned\n", { id: "poolRising", label: "Rising Fast" }, " = assigned | not assigned\n", { id: "poolFalling", label: "Falling Fast" }, " = assigned | not assigned\n", { id: "poolEarly", label: "Early / Niche" }, " = assigned | not assigned\n", { id: "poolPersonal", label: "Personal" }, " = assigned | not assigned\n", { id: "poolNeedsContent", label: "Needs Better Content" }, " = assigned | not assigned"],
+        summary: "Pools group eligible trends by distribution reason.",
+        logic: "Pool assignment is multi-label. More than one internal distribution reason can be active for the same trend.",
+        example: "A trend can move to Needs Better Content if relevance is high but presentation is weak.",
+        rows: [["Output type", "Pool assignment set"], ["Feed builder", "Selects one placement role and deduplicates"]]
+      },
+      poolTop: {
+        kind: "Pool",
+        title: "Top Now",
+        parts: ["Output: assigned | not assigned\nAssigned when:\n", { id: "baseCultural", label: "Base Cultural Score" }, " >= top-now threshold\nAND ", { id: "confidenceMultiplier", label: "Confidence Multiplier" }, " >= threshold\nAND ", { id: "presentationFormula", label: "Presentation Readiness" }, " >= target"],
+        summary: "The strongest current cultural trends.",
+        logic: "This pool uses the same Base Cultural Score as relevance scoring. Pool assignment categorizes the reason for distribution; scoring later decides ranking strength.",
+        example: "Broad attention, strong curator context, and reliable market conviction can place a trend here.",
+        rows: [["Primary signal", "Base Cultural Score"], ["Risk", "Overexposure"]]
+      },
+      poolRising: {
+        kind: "Pool",
+        title: "Rising Fast",
+        parts: ["Output: assigned | not assigned\nAssigned when:\n", { id: "momentumDirection", label: "Momentum Direction" }, " = rising\nAND ", { id: "momentum", label: "Momentum Intensity" }, " >= threshold\nAND ", { id: "confidenceMultiplier", label: "Confidence Multiplier" }, " >= threshold"],
+        summary: "Trends gaining cultural relevance quickly.",
+        logic: "Rising Fast gives early movement a path to visibility while the trend is still building.",
+        example: "A niche fashion term suddenly spreading across communities can enter this pool.",
+        rows: [["Primary signal", "Upward movement"], ["Feed role", "Fresh discovery"]]
+      },
+      poolFalling: {
+        kind: "Pool",
+        title: "Falling Fast",
+        parts: ["Output: assigned | not assigned\nAssigned when:\n", { id: "momentumDirection", label: "Momentum Direction" }, " = falling\nAND ", { id: "momentum", label: "Momentum Intensity" }, " >= threshold\nAND ", { id: "market", label: "Market Conviction" }, " >= threshold"],
+        summary: "Trends losing relevance quickly in a way that is itself interesting.",
+        logic: "Sharp reversals can be culturally and financially relevant.",
+        example: "A trend with heavy short pressure and collapsing attention can appear here.",
+        rows: [["Primary signal", "Sharp decline"], ["Feed role", "Reversal awareness"]]
+      },
+      poolEarly: {
+        kind: "Pool",
+        title: "Early / Niche",
+        parts: ["Output: assigned | not assigned\nAssigned when:\n", { id: "momentumDirection", label: "Momentum Direction" }, " = rising\nAND ", { id: "momentum", label: "Momentum Intensity" }, " >= early threshold\nAND ", { id: "curationAuthority", label: "Curation Authority" }, " >= threshold\nAND ", { id: "nicheIntensity", label: "Niche Intensity" }, " >= threshold\nAND ", { id: "baseCultural", label: "Base Cultural Score" }, " < top-now threshold"],
+        summary: "Promising trends with limited but meaningful evidence.",
+        logic: "This pool gives promising small-sample trends limited exposure while confidence builds.",
+        example: "A trend intense in one community can get limited test distribution.",
+        rows: [["Primary signal", "Early promise"], ["Limit", "Small exposure budget"]]
+      },
+      poolPersonal: {
+        kind: "Pool",
+        title: "Personal",
+        parts: ["Output: assigned | not assigned\nAssigned when:\n", { id: "baseCultural", label: "Base Cultural Score" }, " >= minimum relevance threshold\nAND ", { id: "userAffinity", label: "User Affinity" }, " >= threshold"],
+        summary: "A lightly personalized pool based on user interests and behavior.",
+        logic: "Personalization guides part of the feed while preserving broad cultural coverage.",
+        example: "A gaming-interested user can see more gaming trends while still seeing broader culture.",
+        rows: [["Weight", "Light to moderate"], ["Risk", "Filter bubble if too strong"]]
+      },
+      poolNeedsContent: {
+        kind: "Pool",
+        title: "Needs Better Content",
+        parts: ["Output: assigned | not assigned\nAssigned when:\n", { id: "baseCultural", label: "Base Cultural Score" }, " >= threshold\nAND ", { id: "readinessGap", label: "Readiness Gap" }, " >= threshold"],
+        summary: "A curator work pool for trends that need better content before wider distribution.",
+        logic: "This protects the app experience while giving curators a clear place to add value. Readiness Gap covers weak display or weak context.",
+        example: "A major trend with weak uploaded media becomes a priority task.",
+        rows: [["Feed status", "Held or capped"], ["Curator action", "Improve content quality"]]
+      },
+
+      momentumDirection: {
+        kind: "Signal",
+        title: "Momentum Direction",
+        parts: ["Output:\nMomentum Direction = rising | falling | flat"],
+        summary: "Shows whether the trend is moving up, moving down, or roughly stable.",
+        logic: "Direction is separated from intensity so rising and falling trends can route to different pools while using the same movement magnitude signal.",
+        example: "A sharp decline can enter Falling Fast; a sharp increase can enter Rising Fast.",
+        rows: [["Used by", "Rising Fast and Falling Fast"], ["Related signal", "Momentum Intensity"]]
+      },
+      nicheIntensity: {
+        kind: "Signal",
+        title: "Niche Intensity",
+        parts: ["Range: 0-100\nInputs: concentration inside a specific community, category, or subculture"],
+        summary: "Measures whether a smaller community cares strongly about the trend.",
+        logic: "This gives niche trends a controlled path to visibility before they become broadly obvious.",
+        example: "A term spreading quickly inside one fashion or gaming community can score high here.",
+        rows: [["High", "Strong focused community interest"], ["Low", "No meaningful niche signal"]]
+      },
+      userAffinity: {
+        kind: "Signal",
+        title: "User Affinity",
+        parts: ["Range: 0-100\nInputs: user interests, followed categories, past engagement, and session behavior"],
+        summary: "Measures how relevant a globally eligible trend is to a specific user.",
+        logic: "Personalization should influence some distribution without replacing broad cultural coverage.",
+        example: "A user who often engages with gaming trends can receive more gaming-related candidates.",
+        rows: [["High", "Strong user or category match"], ["Low", "Weak personal match"]]
+      },
+
+      scoreRoot: {
+        kind: "Stage",
+        title: "Relevance Scoring",
+        parts: ["Output:\nNOISE Relevance Score =\n", { id: "baseCultural", label: "Base Cultural Score" }, "\n× ", { id: "qualityMultiplier", label: "Quality Multiplier" }, "\n× ", { id: "presentationMultiplier", label: "Presentation Multiplier" }, "\n× ", { id: "integrityMultiplier", label: "Integrity Multiplier" }, "\n× ", { id: "confidenceMultiplier", label: "Confidence Multiplier" }],
+        summary: "Ranks eligible trends for feed construction.",
+        logic: "The base score is additive because cultural relevance has multiple positive sources. Multipliers are separate because quality, presentation, integrity, and confidence can limit the whole result.",
+        example: "A high-attention trend ranks strongest when presentation, integrity, and confidence also hold up.",
+        rows: [["Range", "0 to 100"], ["Use", "Rank eligible candidates"]]
+      },
+      baseCultural: {
+        kind: "Formula",
+        title: "Base Cultural Score",
+        parts: ["Base Cultural Score =\n0.25 ", { id: "attention", label: "Attention" }, "\n+ 0.20 ", { id: "momentum", label: "Momentum Intensity" }, "\n+ 0.15 ", { id: "market", label: "Market Conviction" }, "\n+ 0.15 ", { id: "curationAuthority", label: "Curation Authority" }, "\n+ 0.15 ", { id: "breadth", label: "Breadth" }, "\n+ 0.10 ", { id: "discussion", label: "Discussion Quality" }],
+        summary: "The cultural core of the ranking score.",
+        logic: "A weighted sum is explainable and calibratable. Attention and momentum get the highest starting weights because the product is about what matters now and what is changing.",
+        example: "The weights should be reviewed against real outcomes after enough data exists.",
+        rows: [["Range", "0 to 100"], ["Calibration", "Weights are adjustable"]]
+      },
+      attention: {
+        kind: "Signal",
+        title: "Attention",
+        parts: ["Range: 0-100\nComputed from: decayed weighted engagement\nInputs: views, dwell, saves, shares, comments, follows"],
+        summary: "Measures whether users are paying attention now.",
+        logic: "Time decay keeps attention current. Weighted engagement gives stronger actions more value than passive views.",
+        example: "Recent saves and shares should matter more than old low-intent views.",
+        rows: [["High", "Fresh, meaningful engagement"], ["Low", "Old or shallow activity"]]
+      },
+      momentum: {
+        kind: "Signal",
+        title: "Momentum Intensity",
+        parts: ["Range: 0-100\nComputed from: normalized absolute speed of change\nDirection: rising | falling | flat"],
+        summary: "Measures how unusually fast relevance is moving.",
+        logic: "Normalizing movement helps smaller trends rank when they move unusually fast for their category.",
+        example: "A small but sudden spike can beat a large trend that is barely moving.",
+        rows: [["Rising", "Positive movement"], ["Falling", "Sharp negative movement"], ["Flat", "Little meaningful movement"]]
+      },
+      market: {
+        kind: "Signal",
+        title: "Market Conviction",
+        parts: ["Range: 0-100\nInputs: direction, volume, liquidity, trader breadth"],
+        summary: "Measures whether buy/short behavior is meaningful and broad.",
+        logic: "Market data is strongest when volume, liquidity, direction, and trader breadth agree.",
+        example: "Broad buy pressure with real liquidity is stronger than one large trader moving price.",
+        rows: [["High", "Broad, liquid, directional"], ["Low", "Thin or concentrated"]]
+      },
+      curationAuthority: {
+        kind: "Signal",
+        title: "Curation Authority",
+        parts: ["Range: 0-100\nInputs: curator reputation, source quality, accepted review signal"],
+        summary: "Adds bounded, reputation-weighted curator judgment to the cultural score.",
+        logic: "Curator input is weighted by reputation, source quality, and accepted review signals.",
+        example: "A strong curator explanation can improve confidence in an early trend.",
+        rows: [["High", "Trusted, useful, accurate"], ["Low", "Unproven or weak context"]]
+      },
+      breadth: {
+        kind: "Signal",
+        title: "Breadth",
+        parts: ["Range: 0-100\nInputs: independent users, communities, sources"],
+        summary: "Measures how widely interest is distributed.",
+        logic: "Breadth helps distinguish cultural spread from isolated activity or coordinated behavior.",
+        example: "Many small independent users are healthier than one large account.",
+        rows: [["High", "Distributed interest"], ["Low", "Single cluster"]]
+      },
+      discussion: {
+        kind: "Signal",
+        title: "Discussion Quality",
+        parts: ["Range: 0-100\nInputs: useful posts, comments, sources, curator explanations"],
+        summary: "Measures whether the conversation around the trend helps users understand it.",
+        logic: "Useful context improves both cultural meaning and product quality.",
+        example: "A clear curator note and useful article should beat generic comments.",
+        rows: [["High", "Useful and specific"], ["Low", "Spammy or shallow"]]
+      },
+      qualityMultiplier: {
+        kind: "Multiplier",
+        title: "Quality Multiplier",
+        parts: ["Range: 0.70-1.00\nQuality Multiplier = 0.70 + 0.30 × ", { id: "qualityScore", label: "Quality Score" }, " / 100"],
+        summary: "Softly reduces ranking strength for eligible trends with quality issues.",
+        logic: "The bounded range keeps normal quality issues from crushing a trend after it already passed routing.",
+        example: "A valid but weakly framed trend can rank lower without being treated like a blocked trend.",
+        rows: [["High", "Clear and useful"], ["Low", "Weak or incomplete"]]
+      },
+      qualityScore: {
+        kind: "Formula",
+        title: "Quality Score",
+        parts: ["Quality Score =\n0.40 ", { id: "definitionQuality", label: "Definition Quality" }, "\n+ 0.35 ", { id: "evidenceQuality", label: "Evidence Quality" }, "\n+ 0.25 ", { id: "editorialUsefulness", label: "Editorial Usefulness" }],
+        summary: "Combines the main quality inputs before they become a bounded multiplier.",
+        logic: "A weighted average keeps the score explainable. Definition and evidence receive the highest starting weights because unclear or unsupported trends should rank weaker.",
+        example: "A clear trend with decent evidence and useful framing maps to a high Quality Score.",
+        rows: [["Range", "0 to 100"], ["Used by", "Quality Multiplier"]]
+      },
+      definitionQuality: {
+        kind: "Metric",
+        title: "Definition Quality",
+        parts: ["Range: 0-100\nHigh: clear, specific, non-duplicate trend definition\nLow: vague, generic, overlapping, or unstable definition"],
+        summary: "Measures whether the trend is defined clearly enough to score.",
+        logic: "A trend needs a stable definition so user activity, curator judgment, and market signals point to the same thing.",
+        example: "A specific meme format maps higher than a broad category like fashion.",
+        rows: [["Inputs", "Specificity, boundaries, duplication risk"], ["Used by", "Quality Multiplier"]]
+      },
+      evidenceQuality: {
+        kind: "Metric",
+        title: "Evidence Quality",
+        parts: ["Range: 0-100\nHigh: credible, relevant, fresh support\nLow: thin, stale, weak, or unsupported signal"],
+        summary: "Measures the quality of evidence behind the trend.",
+        logic: "Evidence quality is about whether support is credible and relevant, not just whether there is a lot of it.",
+        example: "A useful source and real user activity map higher than vague screenshots.",
+        rows: [["Inputs", "Credibility, relevance, freshness"], ["Used by", "Quality Multiplier"]]
+      },
+      editorialUsefulness: {
+        kind: "Metric",
+        title: "Editorial Usefulness",
+        parts: ["Range: 0-100\nHigh: understandable and useful to users\nLow: unclear, generic, or not worth showing"],
+        summary: "Measures whether the trend entry helps users understand why it matters.",
+        logic: "Useful editorial framing improves ranking quality without making every editorial weakness a hard routing failure.",
+        example: "A concise explanation of what changed maps higher than a generic description.",
+        rows: [["Inputs", "Clarity, usefulness, user value"], ["Used by", "Quality Multiplier"]]
+      },
+      presentationMultiplier: {
+        kind: "Multiplier",
+        title: "Presentation Multiplier",
+        parts: ["Range: 0.60-1.00\nPresentation Multiplier = 0.60 + 0.40 × ", { id: "presentationFormula", label: "Presentation Readiness" }, " / 100"],
+        summary: "Turns presentation readiness into ranking strength.",
+        logic: "Presentation is bounded because hard display problems are handled in Surface Routing. This multiplier adjusts ranking strength for eligible trends.",
+        example: "A trend can have strong relevance but rank lower until presentation improves.",
+        rows: [["High", "Ready to show well"], ["Low", "Needs curator improvement"]]
+      },
+      integrityMultiplier: {
+        kind: "Multiplier",
+        title: "Integrity Multiplier",
+        parts: ["Range: 0-1\nIntegrity Multiplier = 1 - ", { id: "manipulationRisk", label: "Manipulation Risk" }],
+        summary: "Penalizes suspicious but non-severe activity.",
+        logic: "Using 1 - risk turns a risk score into a trust multiplier. A 0.20 risk becomes a 0.80 multiplier.",
+        example: "Mild concentration can reduce rank; severe manipulation should stop public ranking.",
+        rows: [["Range", "0 to 1"], ["High", "More trustworthy"]]
+      },
+      manipulationRisk: {
+        kind: "Metric",
+        title: "Manipulation Risk",
+        parts: ["Range: 0-1\nManipulation Risk = min(1, 0.35 ", { id: "whaleConcentration", label: "Whale Concentration" }, " + 0.25 ", { id: "spamRisk", label: "Spam Risk" }, " + 0.25 ", { id: "coordinationRisk", label: "Coordination Risk" }, " + 0.15 ", { id: "washTradingRisk", label: "Wash-Trading Risk" }, ")"],
+        summary: "A normalized risk score for artificial activity.",
+        logic: "Risk components are weighted and capped because different manipulation patterns have different severity.",
+        example: "A single whale moving price increases risk more than a broad set of small traders.",
+        rows: [["Low", "Organic behavior"], ["High", "Suspicious activity"]]
+      },
+      whaleConcentration: {
+        kind: "Metric",
+        title: "Whale Concentration",
+        parts: ["Range: 0-1\nHigh: activity depends on a few very large actors\nLow: activity is broadly distributed"],
+        summary: "Measures whether large actors dominate the signal.",
+        logic: "Concentrated activity is more fragile and easier to manipulate than broad independent activity.",
+        example: "One large trader moving most of the market maps high.",
+        rows: [["High", "Concentrated activity"], ["Low", "Distributed activity"]]
+      },
+      spamRisk: {
+        kind: "Metric",
+        title: "Spam Risk",
+        parts: ["Range: 0-1\nHigh: repeated, automated, abusive, or low-quality activity\nLow: organic user activity"],
+        summary: "Measures whether activity looks low quality or abusive.",
+        logic: "Spam risk protects the score from activity that should not represent real cultural relevance.",
+        example: "Repeated posts from throwaway accounts map high.",
+        rows: [["High", "Spam-like activity"], ["Low", "Organic activity"]]
+      },
+      coordinationRisk: {
+        kind: "Metric",
+        title: "Coordination Risk",
+        parts: ["Range: 0-1\nHigh: synchronized accounts or repeated patterns\nLow: independent user behavior"],
+        summary: "Measures whether activity appears coordinated.",
+        logic: "Coordinated behavior can create false momentum, especially in early or low-volume trends.",
+        example: "Many accounts posting the same signal at the same time maps high.",
+        rows: [["High", "Coordinated pattern"], ["Low", "Independent behavior"]]
+      },
+      washTradingRisk: {
+        kind: "Metric",
+        title: "Wash-Trading Risk",
+        parts: ["Range: 0-1\nHigh: artificial market activity or self-dealing patterns\nLow: real market participation"],
+        summary: "Measures whether market activity may be artificially created.",
+        logic: "Wash-trading risk reduces trust in market conviction when activity is not economically meaningful.",
+        example: "Circular trading patterns between related accounts map high.",
+        rows: [["High", "Artificial market activity"], ["Low", "Real participation"]]
+      },
+      confidenceMultiplier: {
+        kind: "Multiplier",
+        title: "Confidence Multiplier",
+        parts: ["Range: 0.45-1.00\nConfidence Multiplier = 0.45 + 0.55 × ", { id: "rawConfidence", label: "Raw Confidence" }],
+        summary: "Controls how much the system should trust the available evidence.",
+        logic: "Confidence is bounded so early trends can still compete, while thin evidence still lowers rank.",
+        example: "A promising niche trend with partial evidence can rank lower without disappearing from the system.",
+        rows: [["High", "Enough evidence"], ["Low", "Tiny or conflicting sample"]]
+      },
+      rawConfidence: {
+        kind: "Formula",
+        title: "Raw Confidence",
+        parts: ["Range: 0-1\nRaw Confidence = min(1, log(1 + ", { id: "adjustedEvidence", label: "Adjusted Evidence" }, ") / log(1 + ", { id: "evidenceTarget", label: "Evidence Target" }, "))"],
+        summary: "Measures evidence maturity before the bounded confidence multiplier is applied.",
+        logic: "Log scaling rises quickly at first and slows later. The first real evidence matters more than the ten-thousandth signal.",
+        example: "A trend with ten meaningful signals should gain confidence faster than a huge trend gains from ten extra views.",
+        rows: [["High", "Evidence has reached the target"], ["Low", "Evidence is still thin"]]
+      },
+      adjustedEvidence: {
+        kind: "Metric",
+        title: "Adjusted Evidence",
+        parts: ["Range: 0+\nInputs: useful engagement, source quality, curator evidence, market breadth, freshness, duplicate adjustment"],
+        summary: "Counts useful evidence after quality and freshness adjustments.",
+        logic: "Raw activity is adjusted so low-quality, stale, duplicate, or concentrated signals do not create false confidence.",
+        example: "Ten independent useful signals can count more than many duplicated low-quality events.",
+        rows: [["High", "Useful and independent evidence"], ["Low", "Thin, stale, or duplicated evidence"]]
+      },
+      evidenceTarget: {
+        kind: "Metric",
+        title: "Evidence Target",
+        parts: ["Range: 0+\nInput: category-specific evidence target"],
+        summary: "Sets the evidence level where confidence is considered mature.",
+        logic: "Different categories can need different evidence targets. A niche trend should not require the same raw volume as a mass-market trend.",
+        example: "A broad celebrity trend can have a higher target than a niche fashion micro-trend.",
+        rows: [["High target", "Broad or noisy category"], ["Low target", "Niche or specialist category"]]
+      },
+
+      mixingRoot: {
+        kind: "Stage",
+        title: "Feed Re-ranking & Mixing",
+        parts: ["Output:\nFeed Window =\n", { id: "poolAllocation", label: "Pool Allocation" }, "\n→ ", { id: "placementRole", label: "Placement Role Selection" }, "\n→ ", { id: "rankInsidePool", label: "Rank Inside Pool" }, "\n→ ", { id: "capCeiling", label: "Caps" }, "\n→ ", { id: "explorationBudget", label: "Exploration" }, "\n→ ", { id: "repeatControl", label: "Repeat Control" }, "\n→ ", { id: "deduplication", label: "Deduplication" }],
+        summary: "Composition rules turn ranked candidates into a balanced feed.",
+        logic: "Pure sorting can overexpose one signal type, repeat similar items, and amplify manipulation. Mixing turns scored candidates into a controlled feed window.",
+        example: "A capped trend can appear in limited positions while quality or confidence improves.",
+        rows: [["Input", "Ranked eligible candidates"], ["Output", "Balanced feed sequence"]]
+      },
+      poolAllocation: {
+        kind: "Rule",
+        title: "Pool Allocation",
+        parts: ["Output:\n", { id: "slotBudget", label: "Slot Budget" }, "[pool] = round(", { id: "feedWindowSize", label: "Feed Window Size" }, " × ", { id: "targetSlotWeights", label: "Target Slot Weights" }, "[pool] / sum(Target Slot Weights))"],
+        summary: "Controls how much feed space each distribution reason receives.",
+        logic: "Allocation uses weights instead of fixed percentages so product teams can tune the mix while the system normalizes the final window.",
+        example: "Falling Fast can receive a small but intentional budget.",
+        rows: [["Output", "Slot budgets"], ["Tuning", "Adjust by product goals"]]
+      },
+      slotBudget: {
+        kind: "Metric",
+        title: "Slot Budget",
+        parts: ["Range: 0 to feed window size\nInput: normalized target slot weight for each pool"],
+        summary: "The number of positions available for a pool in the current feed window.",
+        logic: "A slot budget controls exposure by reason for distribution, not by app tab.",
+        example: "In a 20-item window, Top Now might receive 10 slots and Falling Fast 2 slots.",
+        rows: [["High", "More room in the window"], ["Low", "Limited room"]]
+      },
+      feedWindowSize: {
+        kind: "Metric",
+        title: "Feed Window Size",
+        parts: ["Range: positive integer\nDefault simulator value: 20 items"],
+        summary: "The number of feed positions being built at once.",
+        logic: "The feed can still be served one item at a time; the window is an internal planning unit.",
+        example: "A 20-item window can reserve 1 exploration slot without creating a visible section.",
+        rows: [["Used by", "Pool Allocation and Exploration"], ["User view", "One continuous feed"]]
+      },
+      targetSlotWeights: {
+        kind: "Metric",
+        title: "Target Slot Weights",
+        parts: ["Inputs:\n", { id: "poolTop", label: "Top Now" }, "\n", { id: "poolRising", label: "Rising Fast" }, "\n", { id: "poolFalling", label: "Falling Fast" }, "\n", { id: "poolEarly", label: "Early / Niche" }, "\n", { id: "poolPersonal", label: "Personal" }, "\n", { id: "explorationBudget", label: "Exploration" }],
+        summary: "The tunable weight assigned to each distribution reason.",
+        logic: "Weights are normalized, so they are easier to tune than hard percentages.",
+        example: "Top Now can have the largest weight while Falling Fast keeps a smaller dedicated share.",
+        rows: [["Type", "Tunable product parameter"], ["Output", "Normalized slot share"]]
+      },
+      capCeiling: {
+        kind: "Rule",
+        title: "Caps",
+        parts: ["Constraint:\ntrend placements <= ", { id: "capLimit", label: "Cap Ceiling" }],
+        summary: "Caps give valid-but-imperfect trends controlled distribution.",
+        logic: "Caps set placement or exposure limits for trends that should not dominate distribution yet.",
+        example: "A Cap trend can rank in the feed with placement limits until it improves.",
+        rows: [["Use", "Risk and quality control"], ["Applied to", "Ranked candidates"]]
+      },
+      capLimit: {
+        kind: "Rule",
+        title: "Cap Ceiling",
+        parts: ["Cap Ceiling = min(", { id: "statusLimit", label: "Status Limit" }, ", ", { id: "qualityLimit", label: "Quality Limit" }, ", ", { id: "integrityLimit", label: "Integrity Limit" }, ")"],
+        summary: "The strongest active exposure limit for a trend.",
+        logic: "Using the minimum keeps the strictest relevant limit in control.",
+        example: "A Pass trend with manipulation concerns can still receive a low integrity limit.",
+        rows: [["Output", "Maximum placements or impressions"], ["Range", "Configured per feed window or time period"]]
+      },
+      statusLimit: {
+        kind: "Rule",
+        title: "Status Limit",
+        parts: ["Output:\n", { id: "statusPass", label: "Pass" }, " = normal ceiling\n", { id: "statusCap", label: "Cap" }, " = limited ceiling\n", { id: "statusHold", label: "Hold" }, " | ", { id: "statusBlock", label: "Block" }, " = no public feed placement"],
+        summary: "Uses Eligibility Routing status to define the first exposure ceiling.",
+        logic: "Eligibility status remains meaningful after scoring because Cap trends should not dominate the feed.",
+        example: "A Cap trend can appear, but with fewer placements than a Pass trend.",
+        rows: [["Input", "Eligibility Status"], ["Use", "Exposure control"]]
+      },
+      qualityLimit: {
+        kind: "Rule",
+        title: "Quality Limit",
+        parts: ["Output:\nQuality Limit decreases as ", { id: "qualityMultiplier", label: "Quality Multiplier" }, " or ", { id: "presentationMultiplier", label: "Presentation Multiplier" }, " decreases"],
+        summary: "Limits exposure when an otherwise valid trend has quality or presentation weaknesses.",
+        logic: "Weak quality should not only reduce rank; it can also limit how often the trend appears.",
+        example: "A trend with weak presentation can receive fewer top-window placements until curators improve it.",
+        rows: [["Inputs", "Quality and presentation multipliers"], ["Use", "Product quality control"]]
+      },
+      integrityLimit: {
+        kind: "Rule",
+        title: "Integrity Limit",
+        parts: ["Output:\nIntegrity Limit decreases as ", { id: "manipulationRisk", label: "Manipulation Risk" }, " increases"],
+        summary: "Limits exposure when suspicious activity exists below the hard-block threshold.",
+        logic: "Integrity limits prevent suspicious trends from gaining too much distribution while evidence is uncertain.",
+        example: "A trend with concentrated market activity can be allowed but tightly limited.",
+        rows: [["Input", "Manipulation Risk"], ["Use", "Trust control"]]
+      },
+      placementRole: {
+        kind: "Rule",
+        title: "Placement Role Selection",
+        parts: ["Output:\nPlacement Role = argmax(", { id: "poolFit", label: "Pool Fit" }, "[pool])\namong active pool labels with ", { id: "openSlotBudget", label: "Open Slot Budget" }],
+        summary: "Chooses which pool role a multi-label trend occupies in a feed window.",
+        logic: "Pools are labels, not duplicate placements. If a trend matches multiple pools, the feed builder chooses the strongest open role for the current window.",
+        example: "A trend that is Rising Fast and Personal can occupy a Rising Fast slot if that pool has the stronger open claim.",
+        rows: [["Input", "Active pool labels"], ["Output", "One placement role"]]
+      },
+      openSlotBudget: {
+        kind: "Metric",
+        title: "Open Slot Budget",
+        parts: ["Range: 0 to Slot Budget[pool]\nOpen Slot Budget[pool] = Slot Budget[pool] - filled slots[pool]"],
+        summary: "How much room a pool still has in the current feed window.",
+        logic: "A candidate can only take a placement role if that role still has room.",
+        example: "If Personal slots are full, a Personal + Rising trend can still occupy a Rising Fast slot.",
+        rows: [["High", "Pool still needs candidates"], ["Low", "Pool is full"]]
+      },
+      poolFit: {
+        kind: "Metric",
+        title: "Pool Fit",
+        parts: ["Range: 0-1\nInputs: strength of the signals that assigned the trend to that pool"],
+        summary: "Measures how strongly a trend belongs to one candidate pool.",
+        logic: "Pool Fit resolves multi-label candidates without creating duplicate placements.",
+        example: "A trend can have 0.90 Rising Fast fit and 0.65 Personal fit.",
+        rows: [["High", "Strong match to the pool reason"], ["Low", "Weak match"]]
+      },
+      rankInsidePool: {
+        kind: "Rule",
+        title: "Rank Inside Pool",
+        parts: ["Output:\nRanked Pool List[pool] = sort candidates by ", { id: "poolRankScore", label: "Pool Rank Score" }, " descending"],
+        summary: "Orders candidates inside each placement role.",
+        logic: "Ranking inside each pool preserves the reason for distribution while still using the relevance score.",
+        example: "Two Rising Fast candidates compete by relevance score and strength of rising-fit signal.",
+        rows: [["Input", "Candidates with selected placement role"], ["Output", "Ordered pool list"]]
+      },
+      poolRankScore: {
+        kind: "Formula",
+        title: "Pool Rank Score",
+        parts: ["Pool Rank Score = ", { id: "scoreRoot", label: "NOISE Relevance Score" }, " × ", { id: "poolFit", label: "Pool Fit" }],
+        summary: "The score used to order candidates within a pool.",
+        logic: "The relevance score handles overall strength; Pool Fit keeps the candidate aligned with the pool's purpose.",
+        example: "A high-relevance trend with weak Falling Fast fit should not dominate the Falling Fast budget.",
+        rows: [["Range", "0 to 100"], ["Used by", "Rank Inside Pool"]]
+      },
+      explorationBudget: {
+        kind: "Rule",
+        title: "Exploration",
+        parts: ["Output:\nExploration Slots = round(", { id: "feedWindowSize", label: "Feed Window Size" }, " × Exploration Weight / sum(", { id: "targetSlotWeights", label: "Target Slot Weights" }, "))"],
+        summary: "Gives early trends controlled exposure so the system can learn.",
+        logic: "Exploration gives under-tested but eligible trends enough exposure to learn from user response.",
+        example: "An Early / Niche trend can get limited exposure to test if broader users care.",
+        rows: [["Typical size", "Small"], ["Guardrails", "Eligibility and surface checks still apply"]]
+      },
+      repeatControl: {
+        kind: "Rule",
+        title: "Repeat Control",
+        parts: ["Output:\n", { id: "adjustedPoolRankScore", label: "Adjusted Pool Rank Score" }],
+        summary: "Keeps the one-at-a-time feed from feeling repetitive.",
+        logic: "Even relevant trends can hurt the experience if shown too often or too close together.",
+        example: "Two similar gaming trends can be spaced apart unless the user strongly indicates interest.",
+        rows: [["Input", "User session history"], ["Output", "Adjusted next item"]]
+      },
+      adjustedPoolRankScore: {
+        kind: "Formula",
+        title: "Adjusted Pool Rank Score",
+        parts: ["Adjusted Pool Rank Score = ", { id: "poolRankScore", label: "Pool Rank Score" }, " × ", { id: "repeatMultiplier", label: "Repeat Multiplier" }],
+        summary: "The placement score after repeat control.",
+        logic: "This is the score Feed Serving uses after mixing has handled pool fit and repetition.",
+        example: "A strong candidate can temporarily rank lower if the user just saw something very similar.",
+        rows: [["Range", "0 to 100"], ["Used by", "Final Candidate Queue"]]
+      },
+      repeatMultiplier: {
+        kind: "Multiplier",
+        title: "Repeat Multiplier",
+        parts: ["Range: 0-1\nInputs: recently seen trends, category spacing, source diversity, session history"],
+        summary: "Reduces ranking strength for items that would make the feed feel repetitive.",
+        logic: "Repeat control is applied after ranking so relevant trends remain eligible but are spaced out.",
+        example: "A trend similar to the last item can receive a lower multiplier for the next few positions.",
+        rows: [["High", "Fresh in context"], ["Low", "Too repetitive right now"]]
+      },
+      deduplication: {
+        kind: "Rule",
+        title: "Deduplication",
+        parts: ["Constraint:\none Trend ID <= one placement per feed window\nKeep: placement with highest ", { id: "poolRankScore", label: "Pool Rank Score" }],
+        summary: "Prevents the same trend from appearing twice because it matched multiple pools.",
+        logic: "Multi-label pool assignment preserves distribution reasons, but the final feed still shows one clean sequence.",
+        example: "A trend assigned to Rising Fast and Personal appears once, not once per pool label.",
+        rows: [["Input", "Candidate sequence"], ["Output", "Unique feed items"]]
+      },
+
+      feedRoot: {
+        kind: "Stage",
+        title: "Feed Serving",
+        parts: ["Output:\nServed Feed Item = first item in ", { id: "finalCandidateQueue", label: "Final Candidate Queue" }, "\nwhere ", { id: "servingChecks", label: "Serving Checks" }, " = pass\n\nAfter serving:\n", { id: "servingFeedback", label: "Serving Feedback Log" }],
+        summary: "Returns the next item shown in the one-at-a-time feed.",
+        logic: "Serving is the last safety and delivery step. It does not invent a new ranking score; it picks the first valid item from the mixed queue.",
+        example: "A high-ranked item is skipped if its cap is exhausted or its media is no longer available.",
+        rows: [["Output", "Next served item"], ["User view", "One continuous feed"]]
+      },
+      finalCandidateQueue: {
+        kind: "Rule",
+        title: "Final Candidate Queue",
+        parts: ["Final Candidate Queue = sort candidates by ", { id: "adjustedPoolRankScore", label: "Adjusted Pool Rank Score" }, "\nafter ", { id: "capCeiling", label: "Caps" }, ", ", { id: "explorationBudget", label: "Exploration" }, ", ", { id: "repeatControl", label: "Repeat Control" }, ", and ", { id: "deduplication", label: "Deduplication" }],
+        summary: "The ordered candidate list produced by Feed Re-ranking & Mixing.",
+        logic: "The queue preserves the pool mix and constraints, then lets serving return one item at a time.",
+        example: "The first candidate can be Top Now, while the next can come from Rising Fast or Exploration depending on the mixed queue.",
+        rows: [["Input", "Mixed candidate window"], ["Output", "Ordered serving queue"]]
+      },
+      servingChecks: {
+        kind: "Rule",
+        title: "Serving Checks",
+        parts: ["Output: pass | skip\nPass when:\n", { id: "surfaceMain", label: "Main Swipe Feed" }, " = eligible\nAND ", { id: "openSlotBudget", label: "Open Slot Budget" }, " > 0\nAND ", { id: "capAvailability", label: "Cap Availability" }, " = yes\nAND ", { id: "servingDuplicateCheck", label: "Duplicate Check" }, " = no\nAND ", { id: "contentAvailability", label: "Content Availability" }, " = yes"],
+        summary: "Final checks before an item is returned to the app.",
+        logic: "Serving checks catch last-moment changes without changing the ranking model.",
+        example: "If media fails to load or the trend was already served in the window, the candidate is skipped.",
+        rows: [["Output", "Pass or skip"], ["Fallback", "Try next candidate"]]
+      },
+      capAvailability: {
+        kind: "Rule",
+        title: "Cap Availability",
+        parts: ["Output: yes | no\nYes when:\nplacements used < ", { id: "capLimit", label: "Cap Ceiling" }],
+        summary: "Checks whether the trend still has allowed exposure left.",
+        logic: "This preserves caps at the moment of serving, not only during queue construction.",
+        example: "A Cap trend can be skipped after it reaches its window limit.",
+        rows: [["Input", "Cap Ceiling and placements used"], ["Output", "Available or exhausted"]]
+      },
+      servingDuplicateCheck: {
+        kind: "Rule",
+        title: "Duplicate Check",
+        parts: ["Output: yes | no\nYes when:\nTrend ID already exists in served feed window"],
+        summary: "Prevents the same trend from being served twice in the same feed window.",
+        logic: "Deduplication happens during mixing, and this check protects the serving layer if state changes later.",
+        example: "A trend re-entering through Personal after Rising Fast is skipped.",
+        rows: [["Input", "Served trend IDs"], ["Output", "Duplicate or unique"]]
+      },
+      contentAvailability: {
+        kind: "Rule",
+        title: "Content Availability",
+        parts: ["Output: yes | no\nYes when:\nrequired media, text, source, or card payload is available"],
+        summary: "Checks that the app can still render the item cleanly.",
+        logic: "Serving should skip items whose assets or required display data are missing at request time.",
+        example: "If a video was removed or a source card fails validation, the item is skipped.",
+        rows: [["Input", "Renderable payload"], ["Output", "Available or unavailable"]]
+      },
+      servingFeedback: {
+        kind: "Signal",
+        title: "Serving Feedback Log",
+        parts: ["Inputs logged:\nimpression, dwell, skip, save, share, follow, comment, report"],
+        summary: "Records what happened after the item was served.",
+        logic: "These events update future attention, repeat control, confidence, and curator reward signals.",
+        example: "High dwell and saves can strengthen Attention; reports can reduce trust or reward.",
+        rows: [["Used by", "Future ranking and rewards"], ["Timing", "After serving"]]
+      },
+
+      curationRoot: {
+        kind: "Formula",
+        title: "Curation Opportunity",
+        parts: ["Curation Opportunity = ", { id: "baseCultural", label: "Base Cultural Score" }, " × ", { id: "readinessGap", label: "Readiness Gap" }, "\n\nAfter work:\n", { id: "rewardScore", label: "Curator Reward Score" }],
+        summary: "Curation Opportunity finds important trends that need better content before stronger distribution.",
+        logic: "This keeps low-quality content out of the feed while creating a clear incentive for curators to improve high-potential trends.",
+        example: "A trend with Base Cultural Score 85 and weak display or context creates a large curation opportunity.",
+        rows: [["Output", "Curator task priority"], ["Use", "Content improvement"]]
+      },
+      readinessGap: {
+        kind: "Formula",
+        title: "Readiness Gap",
+        parts: ["Readiness Gap = max(", { id: "presentationGap", label: "Presentation Gap" }, ", ", { id: "contextGap", label: "Context Gap" }, ")"],
+        summary: "Measures the largest missing readiness area for curation.",
+        logic: "A trend can need curator work because the display is weak, the context is weak, or both.",
+        example: "A strong visual with no useful explanation can still create a high readiness gap.",
+        rows: [["Range", "0 to 1"], ["Used by", "Curation Opportunity"]]
+      },
+      presentationGap: {
+        kind: "Formula",
+        title: "Presentation Gap",
+        parts: ["Range: 0-1\nPresentation Gap = 1 - ", { id: "presentationFormula", label: "Presentation Readiness" }, " / 100"],
+        summary: "Measures how much presentation quality is missing.",
+        logic: "The gap gets smaller as curators add better visual or text display options.",
+        example: "Readiness 0.30 creates gap 0.70. Readiness 0.90 creates gap 0.10.",
+        rows: [["High gap", "Needs curator work"], ["Low gap", "Already presentable"]]
+      },
+      contextGap: {
+        kind: "Formula",
+        title: "Context Gap",
+        parts: ["Range: 0-1\nContext Gap = 1 - ", { id: "contextSufficiency", label: "Context Sufficiency" }, " / 100"],
+        summary: "Measures how much explanatory context is missing.",
+        logic: "The gap gets smaller as curators improve summaries, sources, and explanations.",
+        example: "Context 0.40 creates gap 0.60. Context 0.85 creates gap 0.15.",
+        rows: [["High gap", "Needs better context"], ["Low gap", "Context is sufficient"]]
+      },
+      rewardScore: {
+        kind: "Formula",
+        title: "Curator Reward Score",
+        parts: ["Curator Reward Score = clamp(0, 100,\n0.35 ", { id: "qualityImprovement", label: "Quality Improvement" }, "\n+ 0.25 ", { id: "successfulPublication", label: "Successful Publication" }, "\n+ 0.20 ", { id: "userResponse", label: "User Response" }, "\n+ 0.20 ", { id: "reviewApproval", label: "Review Approval" }, "\n- ", { id: "flagsReversals", label: "Flags / Reversals" }, ")"],
+        summary: "Rewards curator work that improves distribution quality.",
+        logic: "The weighted score favors useful improvement and publication success while still accounting for user response and review quality.",
+        example: "A curator who turns an important weak trend into a clean, source-backed feed item should win.",
+        rows: [["Primary incentive", "Improve important trends"], ["Penalty", "Low-effort or harmful work"]]
+      },
+      qualityImprovement: {
+        kind: "Reward Factor",
+        title: "Quality Improvement",
+        parts: ["Range: 0-100\nQuality Improvement = max(0, ", { id: "newQualityValue", label: "New Quality Value" }, " - ", { id: "previousQualityValue", label: "Previous Quality Value" }, ")"],
+        summary: "Measures how much the curator improved the trend.",
+        logic: "Rewards use before/after improvement so curator value is measurable.",
+        example: "Replacing a blurry image with a clean source-backed card creates measurable improvement.",
+        rows: [["High", "Meaningful upgrade"], ["Low", "No clear improvement"]]
+      },
+      previousQualityValue: {
+        kind: "Metric",
+        title: "Previous Quality Value",
+        parts: ["Range: 0-100\nInputs: quality, presentation, and context before curator work"],
+        summary: "The trend's useful quality level before the curator contribution.",
+        logic: "A baseline is needed so rewards measure improvement rather than raw output volume.",
+        example: "A trend with poor media and weak context can start with a low previous value.",
+        rows: [["High", "Already strong"], ["Low", "Needs work"]]
+      },
+      newQualityValue: {
+        kind: "Metric",
+        title: "New Quality Value",
+        parts: ["Range: 0-100\nInputs: quality, presentation, and context after curator work"],
+        summary: "The trend's useful quality level after the curator contribution.",
+        logic: "This captures the actual state unlocked by the curator work.",
+        example: "Adding a clean card and useful sources can raise the new value.",
+        rows: [["High", "Ready and useful"], ["Low", "Still weak"]]
+      },
+      successfulPublication: {
+        kind: "Reward Factor",
+        title: "Successful Publication",
+        parts: ["Range: 0-100\nHigh: unlocks Main Swipe Feed or a stronger distribution tier\nLow: no meaningful surface improvement"],
+        summary: "Rewards work that makes the trend usable.",
+        logic: "Rewards focus on useful improvements that make important trends ready for distribution.",
+        example: "A held trend becomes main-swipe eligible after curator improvement.",
+        rows: [["High", "Unlocks distribution"], ["Low", "No surface improvement"]]
+      },
+      userResponse: {
+        kind: "Reward Factor",
+        title: "User Response",
+        parts: ["Range: 0-100\nInputs: dwell, saves, follows, shares, comments"],
+        summary: "Checks whether users responded well after the improved content was shown.",
+        logic: "This gives feedback on whether the curator's work made the trend more understandable or engaging.",
+        example: "More saves and meaningful dwell after publication support the reward.",
+        rows: [["High", "Useful engagement"], ["Low", "Ignored or bounced"]]
+      },
+      reviewApproval: {
+        kind: "Reward Factor",
+        title: "Review Approval",
+        parts: ["Range: 0-100\nHigh: approved as useful\nLow: rejected, reversed, or low quality"],
+        summary: "Adds human quality control to curator rewards.",
+        logic: "Review approval helps prevent rewards from being captured by shallow engagement or coordinated behavior.",
+        example: "A super-curator approval can boost reward confidence for difficult cultural calls.",
+        rows: [["High", "Approved and useful"], ["Low", "Rejected or unreviewed"]]
+      },
+      flagsReversals: {
+        kind: "Reward Factor",
+        title: "Flags / Reversals",
+        parts: ["Range: 0-100\nFlags / Reversals = min(100,\n0.35 ", { id: "moderationFlags", label: "Moderation Flags" }, "\n+ 0.25 ", { id: "duplicateReversals", label: "Duplicate Reversals" }, "\n+ 0.20 ", { id: "lowEffortUploads", label: "Low-Effort Uploads" }, "\n+ 0.20 ", { id: "misleadingContext", label: "Misleading Context" }, ")"],
+        summary: "Subtracts from rewards when curator work harms quality or trust.",
+        logic: "Penalties align rewards with trust, accuracy, and useful contribution.",
+        example: "Duplicate content or misleading framing should reduce reward score.",
+        rows: [["Penalty", "Trust and quality failures"], ["Purpose", "Prevent low-effort gaming"]]
+      },
+      moderationFlags: {
+        kind: "Metric",
+        title: "Moderation Flags",
+        parts: ["Range: 0-100\nHigh: serious or repeated moderation issues\nLow: no meaningful moderation issues"],
+        summary: "Measures moderation problems in the curator contribution.",
+        logic: "Rewards should decrease when a contribution creates safety or policy work.",
+        example: "Uploading unsafe or policy-violating media maps high.",
+        rows: [["High", "Moderation concern"], ["Low", "No concern"]]
+      },
+      duplicateReversals: {
+        kind: "Metric",
+        title: "Duplicate Reversals",
+        parts: ["Range: 0-100\nHigh: contribution was reversed as duplicate or redundant\nLow: contribution added distinct value"],
+        summary: "Measures whether curator work had to be reversed because it duplicated existing content.",
+        logic: "Duplicate work should not earn the same reward as useful new context.",
+        example: "Reposting an already accepted source maps high.",
+        rows: [["High", "Duplicate or redundant"], ["Low", "Distinct contribution"]]
+      },
+      lowEffortUploads: {
+        kind: "Metric",
+        title: "Low-Effort Uploads",
+        parts: ["Range: 0-100\nHigh: shallow, low-quality, or barely useful uploads\nLow: careful and useful contribution"],
+        summary: "Measures whether the contribution looks low effort.",
+        logic: "This discourages upload volume from becoming the main reward strategy.",
+        example: "A blurry screenshot with no context maps high.",
+        rows: [["High", "Low effort"], ["Low", "Useful work"]]
+      },
+      misleadingContext: {
+        kind: "Metric",
+        title: "Misleading Context",
+        parts: ["Range: 0-100\nHigh: inaccurate, unsupported, or misleading framing\nLow: accurate and well-supported framing"],
+        summary: "Measures whether the contribution misrepresents the trend.",
+        logic: "Misleading context damages user trust and should reduce rewards.",
+        example: "A source that does not support the claimed trend maps high.",
+        rows: [["High", "Misleading"], ["Low", "Accurate"]]
+      }
+    };
+
+    const explorerState = new Map();
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function renderParts(parts, rootId) {
+      return parts.map((part) => {
+        if (typeof part === "string") {
+          return `<span>${escapeHtml(part)}</span>`;
+        }
+        const node = logicNodes[part.id];
+        const label = part.label || (node ? node.title : part.id);
+        return `<button class="part-button" type="button" data-node-id="${escapeHtml(part.id)}" data-root-id="${escapeHtml(rootId)}">${escapeHtml(label)}</button>`;
+      }).join("");
+    }
+
+    function renderRows(rows) {
+      if (!rows || !rows.length) return "";
+      return `<div class="status-rows">${rows.map(([label, text]) => `
+        <div class="status-row"><strong>${escapeHtml(label)}</strong><span>${escapeHtml(text)}</span></div>
+      `).join("")}</div>`;
+    }
+
+    function renderCard(nodeId, rootId, index) {
+      const node = logicNodes[nodeId];
+      if (!node) return "";
+      const connector = index === 0 ? "" : `<div class="trail-connector"><span class="trail-arrow" aria-hidden="true"></span><span>selected detail</span></div>`;
+      return `${connector}
+        <article class="logic-card" data-node-card="${escapeHtml(nodeId)}">
+          <div class="logic-left">
+            <div class="logic-kind">${escapeHtml(node.kind)}</div>
+            <h3>${escapeHtml(node.title)}</h3>
+            <div class="logic-expression">${renderParts(node.parts, rootId)}</div>
+            ${renderRows(node.rows)}
+          </div>
+          <div class="logic-right">
+            <p>${escapeHtml(node.summary)}</p>
+            <p class="logic-note">${escapeHtml(node.logic)}</p>
+            ${node.example ? `<div class="example-line"><strong>Example:</strong> ${escapeHtml(node.example)}</div>` : ""}
+          </div>
+        </article>`;
+    }
+
+    function renderExplorer(host) {
+      const rootId = host.dataset.root;
+      if (!explorerState.has(rootId)) {
+        explorerState.set(rootId, [rootId]);
+      }
+      const trail = explorerState.get(rootId);
+      host.innerHTML = trail.map((nodeId, index) => renderCard(nodeId, rootId, index)).join("");
+    }
+
+    function openNode(rootId, nodeId, sourceNodeId) {
+      const trail = explorerState.get(rootId) || [rootId];
+      const sourceIndex = Math.max(0, trail.indexOf(sourceNodeId));
+      const baseTrail = trail.slice(0, sourceIndex + 1);
+      const existingIndex = baseTrail.indexOf(nodeId);
+      const nextTrail = existingIndex >= 0 ? baseTrail.slice(0, existingIndex + 1) : baseTrail.concat(nodeId);
+      explorerState.set(rootId, nextTrail);
+      const host = document.querySelector(`.explorer[data-root="${CSS.escape(rootId)}"]`);
+      if (host) renderExplorer(host);
+    }
+
+    function updateEligibility() {
+      const unsafe = document.getElementById("eligUnsafe").checked;
+      const manipulation = document.getElementById("eligManipulation").checked;
+      const definition = document.getElementById("eligDefinition").value;
+      const evidence = document.getElementById("eligEvidence").value;
+      let status = "Pass";
+      let route = "normal distribution";
+      let reason = "This trend clears the first routing check.";
+      if (unsafe || manipulation) {
+        status = "Block";
+        route = "excluded";
+        reason = "A hard issue stops the trend from entering public discovery.";
+      } else if (definition === "unclear" || evidence === "missing") {
+        status = "Hold";
+        route = "review queue";
+        reason = "The trend may be valid, but it needs clarification or basic evidence first.";
+      } else if (definition === "weak" || evidence === "thin") {
+        status = "Cap";
+        route = "limited distribution";
+        reason = "The trend can appear with limits while quality improves.";
+      }
+      document.getElementById("eligResult").textContent = status;
+      document.getElementById("eligRoute").textContent = route;
+      document.getElementById("eligReason").textContent = reason;
+    }
+
+    function updateSurface() {
+      const eligibility = document.getElementById("surfaceEligibility").value;
+      const visual = Number(document.getElementById("visualRange").value);
+      const text = Number(document.getElementById("textRange").value);
+      const context = Number(document.getElementById("contextRange").value);
+      const coverage = Number(document.getElementById("coverageRange").value);
+      const hardIssue = document.getElementById("hardDisplayIssue").checked;
+      document.getElementById("visualValue").textContent = visual;
+      document.getElementById("textValue").textContent = text;
+      document.getElementById("contextValue").textContent = context;
+      document.getElementById("coverageValue").textContent = coverage;
+      const display = Math.max(visual, text);
+      const coverageMultiplier = 0.7 + 0.3 * coverage / 100;
+      const presentation = Math.round(display * coverageMultiplier);
+      const publicCandidate = eligibility === "pass" || eligibility === "cap";
+      const contentGap = display < 70 || context < 60 || coverage < 45;
+      const mainEligible = publicCandidate && !hardIssue && presentation >= 70 && context >= 45;
+      const detailEligible = publicCandidate && !hardIssue && context >= 60;
+      const queueRouted = eligibility === "hold" || hardIssue || presentation < 70 || context < 60 || contentGap;
+
+      setRouteState("mainRouteState", mainEligible, "eligible", "not eligible");
+      setRouteState("detailRouteState", detailEligible, "eligible", "not eligible");
+      setRouteState("queueRouteState", queueRouted, "routed", "not routed");
+
+      document.getElementById("mainRouteReason").textContent = mainEligible
+        ? "Presentation and context clear the public feed thresholds."
+        : !publicCandidate
+          ? "Hold trends do not enter public feed surfaces."
+          : hardIssue
+            ? "A hard display issue blocks this public surface."
+            : presentation < 70
+              ? "Presentation readiness is below the main-feed threshold."
+              : "Context is below the lightweight feed threshold.";
+      document.getElementById("detailRouteReason").textContent = detailEligible
+        ? "Context clears the detail threshold."
+        : !publicCandidate
+          ? "Hold trends do not enter public detail surfaces."
+          : hardIssue
+            ? "A hard display issue blocks this public surface."
+            : "Context is below the detail threshold.";
+      document.getElementById("queueRouteReason").textContent = queueRouted
+        ? eligibility === "hold"
+          ? "Hold status routes the trend to curator work."
+          : hardIssue
+            ? "A hard display issue needs curator work."
+            : presentation < 70
+              ? "Display or coverage needs improvement."
+              : "Context or coverage needs improvement."
+        : "No curator work route is needed from these inputs.";
+
+      document.getElementById("displayReadinessValue").textContent = display;
+      document.getElementById("coverageMultiplierValue").textContent = coverageMultiplier.toFixed(2);
+      document.getElementById("surfacePresentationValue").textContent = presentation;
+    }
+
+    function setRouteState(id, active, activeText, inactiveText) {
+      const element = document.getElementById(id);
+      element.textContent = active ? activeText : inactiveText;
+      element.classList.toggle("active", active);
+    }
+
+    function updatePools() {
+      const base = Number(document.getElementById("poolRelevance").value);
+      const direction = document.getElementById("poolDirection").value;
+      const momentum = Number(document.getElementById("poolMomentum").value);
+      const market = Number(document.getElementById("poolMarket").value);
+      const rawConfidence = Number(document.getElementById("poolConfidence").value);
+      const confidenceMultiplier = 0.45 + 0.55 * rawConfidence / 100;
+      const presentation = Number(document.getElementById("poolPresentation").value);
+      const context = Number(document.getElementById("poolContext").value);
+      const curation = Number(document.getElementById("poolCuration").value);
+      const niche = Number(document.getElementById("poolNiche").value);
+      const affinity = Number(document.getElementById("poolAffinity").value);
+
+      document.getElementById("poolRelevanceValue").textContent = base;
+      document.getElementById("poolMomentumValue").textContent = momentum;
+      document.getElementById("poolMarketValue").textContent = market;
+      document.getElementById("poolConfidenceValue").textContent = confidenceMultiplier.toFixed(2);
+      document.getElementById("poolPresentationValue").textContent = presentation;
+      document.getElementById("poolContextValue").textContent = context;
+      document.getElementById("poolCurationValue").textContent = curation;
+      document.getElementById("poolNicheValue").textContent = niche;
+      document.getElementById("poolAffinityValue").textContent = affinity;
+
+      const readinessGap = Math.max(1 - presentation / 100, 1 - context / 100);
+      const readinessGapPercent = Math.round(readinessGap * 100);
+      const top = base >= 75 && confidenceMultiplier >= 0.80 && presentation >= 70;
+      const rising = direction === "rising" && momentum >= 70 && confidenceMultiplier >= 0.75;
+      const falling = direction === "falling" && momentum >= 70 && market >= 60;
+      const early = direction === "rising" && momentum >= 50 && curation >= 60 && niche >= 70 && base < 75;
+      const personal = base >= 40 && affinity >= 70;
+      const needs = base >= 65 && readinessGap >= 0.4;
+
+      setRouteState("poolTopState", top, "assigned", "not assigned");
+      setRouteState("poolRisingState", rising, "assigned", "not assigned");
+      setRouteState("poolFallingState", falling, "assigned", "not assigned");
+      setRouteState("poolEarlyState", early, "assigned", "not assigned");
+      setRouteState("poolPersonalState", personal, "assigned", "not assigned");
+      setRouteState("poolNeedsState", needs, "assigned", "not assigned");
+      const assignedCount = [top, rising, falling, early, personal, needs].filter(Boolean).length;
+      document.getElementById("poolReadinessGapValue").textContent = readinessGapPercent;
+      document.getElementById("poolAssignedCount").textContent = assignedCount;
+
+      document.getElementById("poolTopReason").textContent = top
+        ? "Base Cultural Score, Confidence Multiplier, and presentation are strong."
+        : base < 75
+          ? "Base Cultural Score is below the Top Now threshold."
+          : confidenceMultiplier < 0.80
+            ? "Confidence Multiplier is below the Top Now threshold."
+            : "Presentation is below the Top Now threshold.";
+      document.getElementById("poolRisingReason").textContent = rising
+        ? "Rising momentum is strong enough for this pool."
+        : direction !== "rising"
+          ? "Momentum direction is not rising."
+          : momentum < 70
+            ? "Momentum intensity is below the Rising Fast threshold."
+            : "Confidence Multiplier is below the Rising Fast threshold.";
+      document.getElementById("poolFallingReason").textContent = falling
+        ? "Falling momentum and market conviction are strong enough."
+        : direction !== "falling"
+          ? "Momentum direction is not falling."
+          : momentum < 70
+            ? "Momentum intensity is below the Falling Fast threshold."
+            : "Market conviction is below the Falling Fast threshold.";
+      document.getElementById("poolEarlyReason").textContent = early
+        ? "Early momentum, curator signal, and niche intensity are strong enough."
+        : direction !== "rising"
+          ? "Early / Niche needs rising movement."
+          : base >= 75
+            ? "High Base Cultural Score belongs in Top Now instead."
+            : momentum < 50
+              ? "Early momentum is below threshold."
+              : curation < 60
+                ? "Curation authority is below threshold."
+                : "Niche intensity is below threshold.";
+      document.getElementById("poolPersonalReason").textContent = personal
+        ? "User affinity is strong enough for personal distribution."
+        : base < 40
+          ? "Base Cultural Score is below the minimum personal-pool threshold."
+          : "User affinity is below the personal threshold.";
+      document.getElementById("poolNeedsReason").textContent = needs
+        ? "Base Cultural Score is high, but display or context readiness needs improvement."
+        : base < 65
+          ? "Base Cultural Score is below the content-improvement threshold."
+          : "Readiness Gap is below the content-improvement threshold.";
+    }
+
+    function updateScore() {
+      const base = Number(document.getElementById("baseRange").value);
+      const qualityScore = Number(document.getElementById("qualityRange").value);
+      const presentationReadiness = Number(document.getElementById("presentationRange").value);
+      const manipulationRisk = Number(document.getElementById("riskRange").value) / 100;
+      const rawConfidence = Number(document.getElementById("confidenceRange").value) / 100;
+      const qualityMultiplier = 0.70 + 0.30 * qualityScore / 100;
+      const presentationMultiplier = 0.60 + 0.40 * presentationReadiness / 100;
+      const integrityMultiplier = 1 - manipulationRisk;
+      const confidenceMultiplier = 0.45 + 0.55 * rawConfidence;
+      document.getElementById("baseValue").textContent = base;
+      document.getElementById("qualityScoreValue").textContent = qualityScore;
+      document.getElementById("presentationReadinessValue").textContent = presentationReadiness;
+      document.getElementById("manipulationRiskValue").textContent = manipulationRisk.toFixed(2);
+      document.getElementById("rawConfidenceValue").textContent = rawConfidence.toFixed(2);
+      document.getElementById("qualityMultiplierValue").textContent = qualityMultiplier.toFixed(2);
+      document.getElementById("presentationMultiplierValue").textContent = presentationMultiplier.toFixed(2);
+      document.getElementById("integrityMultiplierValue").textContent = integrityMultiplier.toFixed(2);
+      document.getElementById("confidenceMultiplierValue").textContent = confidenceMultiplier.toFixed(2);
+      const combinedMultiplier = qualityMultiplier * presentationMultiplier * integrityMultiplier * confidenceMultiplier;
+      const score = base * combinedMultiplier;
+      const rounded = Math.round(score);
+      document.getElementById("scoreResult").textContent = rounded;
+      document.getElementById("scoreBar").style.setProperty("--value", `${Math.min(100, rounded)}%`);
+      document.getElementById("combinedMultiplierValue").textContent = combinedMultiplier.toFixed(2);
+      document.getElementById("scoreReason").textContent = rounded >= 60
+        ? "Strong score: the base signal and multipliers hold up."
+        : combinedMultiplier < 0.80
+          ? "Soft multipliers are reducing the final score."
+          : "The base signal is not high enough for a strong final score.";
+    }
+
+    function updateMixing() {
+      const inputs = [
+        ["Top Now", "topMix", "topMixValue"],
+        ["Rising Fast", "risingMix", "risingMixValue"],
+        ["Falling Fast", "fallingMix", "fallingMixValue"],
+        ["Early / Niche", "earlyMix", "earlyMixValue"],
+        ["Personal", "personalMix", "personalMixValue"],
+        ["Exploration", "exploreMix", "exploreMixValue"]
+      ];
+      const raw = inputs.map(([, id]) => Number(document.getElementById(id).value));
+      inputs.forEach(([, id, labelId], index) => {
+        document.getElementById(labelId).textContent = raw[index];
+      });
+      const total = raw.reduce((sum, value) => sum + value, 0);
+      const effectiveRaw = total > 0 ? raw : raw.map(() => 1);
+      const effectiveTotal = effectiveRaw.reduce((sum, value) => sum + value, 0);
+      const slots = inputs.map(([label], index) => {
+        const share = effectiveRaw[index] / effectiveTotal;
+        const exactSlots = share * 20;
+        return {
+          label,
+          slots: Math.floor(exactSlots),
+          remainder: exactSlots - Math.floor(exactSlots),
+          share: Math.round(share * 100)
+        };
+      });
+      let remainingSlots = 20 - slots.reduce((sum, item) => sum + item.slots, 0);
+      const byRemainder = [...slots].sort((a, b) => b.remainder - a.remainder);
+      for (let index = 0; index < remainingSlots; index += 1) {
+        byRemainder[index % byRemainder.length].slots += 1;
+      }
+      document.getElementById("slotResult").innerHTML = slots.map((item) => `
+        <div class="slot-row">
+          <strong>${escapeHtml(item.label)}</strong>
+          <div class="bar"><span style="--value: ${item.share}%"></span></div>
+          <span>${item.share}% / ${item.slots} slots</span>
+        </div>
+      `).join("");
+    }
+
+    function updateServing() {
+      const rank = Number(document.getElementById("servingRank").value);
+      const surface = document.getElementById("servingSurface").checked;
+      const slot = document.getElementById("servingSlot").checked;
+      const cap = document.getElementById("servingCap").checked;
+      const unique = document.getElementById("servingDuplicate").checked;
+      const content = document.getElementById("servingContent").checked;
+      const canServe = surface && slot && cap && unique && content;
+      document.getElementById("servingRankValue").textContent = rank;
+      document.getElementById("servingPriorityValue").textContent = canServe ? rank : 0;
+      document.getElementById("servingResult").textContent = canServe ? "Serve" : "Skip";
+      document.getElementById("servingAction").textContent = canServe ? "next item" : "try next";
+      document.getElementById("servingLogValue").textContent = canServe ? "enabled" : "no impression";
+      document.getElementById("servingReason").textContent = canServe
+        ? "This candidate passes the final serving checks."
+        : !surface
+          ? "This candidate is not eligible for the Main Swipe Feed."
+          : !slot
+            ? "The selected placement role has no open slot budget."
+            : !cap
+              ? "The candidate has exhausted its cap ceiling."
+              : !unique
+                ? "This Trend ID already exists in the feed window."
+                : "The required content is not available for serving.";
+    }
+
+    function updateCuration() {
+      const relevance = Number(document.getElementById("curationRelevance").value);
+      const presentation = Number(document.getElementById("curationPresentation").value);
+      const context = Number(document.getElementById("curationContext").value);
+      const presentationGap = 1 - presentation / 100;
+      const contextGap = 1 - context / 100;
+      const readinessGap = Math.max(presentationGap, contextGap);
+      document.getElementById("curationRelevanceValue").textContent = relevance;
+      document.getElementById("curationPresentationValue").textContent = presentation;
+      document.getElementById("curationContextValue").textContent = context;
+      document.getElementById("curationPresentationGapValue").textContent = presentationGap.toFixed(2);
+      document.getElementById("curationContextGapValue").textContent = contextGap.toFixed(2);
+      document.getElementById("curationReadinessValue").textContent = readinessGap.toFixed(2);
+      const opportunity = Math.round(relevance * readinessGap);
+      const priorityTier = opportunity >= 45 ? "high" : opportunity >= 25 ? "medium" : "low";
+      document.getElementById("curationScore").textContent = opportunity;
+      document.getElementById("curationBar").style.setProperty("--value", `${opportunity}%`);
+      document.getElementById("curationTierValue").textContent = priorityTier;
+      document.getElementById("curationReason").textContent = opportunity >= 45
+        ? "High priority: strong cultural signal and a clear readiness gap."
+        : opportunity >= 25
+          ? "Medium priority: useful curator work, but the gap or cultural signal is moderate."
+          : "Low priority: cultural signal or readiness gap is too small.";
+    }
+
+    document.querySelectorAll(".explorer").forEach(renderExplorer);
+
+    document.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-node-id][data-root-id]");
+      if (!button) return;
+      const sourceCard = button.closest("[data-node-card]");
+      openNode(button.dataset.rootId, button.dataset.nodeId, sourceCard ? sourceCard.dataset.nodeCard : button.dataset.rootId);
+    });
+
+    ["eligUnsafe", "eligManipulation", "eligDefinition", "eligEvidence"].forEach((id) => {
+      document.getElementById(id).addEventListener("input", updateEligibility);
+    });
+
+    ["surfaceEligibility", "visualRange", "textRange", "contextRange", "coverageRange", "hardDisplayIssue"].forEach((id) => {
+      document.getElementById(id).addEventListener("input", updateSurface);
+    });
+
+    document.querySelectorAll(".pool-input").forEach((input) => {
+      input.addEventListener("input", updatePools);
+    });
+
+    document.querySelectorAll(".score-input").forEach((input) => {
+      input.addEventListener("input", updateScore);
+    });
+
+    document.querySelectorAll(".mix-input").forEach((input) => {
+      input.addEventListener("input", updateMixing);
+    });
+
+    document.querySelectorAll(".serving-input").forEach((input) => {
+      input.addEventListener("input", updateServing);
+    });
+
+    ["curationRelevance", "curationPresentation", "curationContext"].forEach((id) => {
+      document.getElementById(id).addEventListener("input", updateCuration);
+    });
+
+    updateEligibility();
+    updateSurface();
+    updatePools();
+    updateScore();
+    updateMixing();
+    updateServing();
+    updateCuration();
+  </script>
+</body>
+</html>

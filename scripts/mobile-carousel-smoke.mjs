@@ -197,13 +197,13 @@ async function main() {
 
     await waitForApp(cdp, sessionId);
     const before = await readState(cdp, sessionId);
-    assert(before.cardCount >= 8, `expected a populated grid, got ${before.cardCount} cards`);
-    assert(before.columns === 2, `feed should be a 2-column grid, got ${before.columns}`);
-    assert(before.firstCardId === 'agi', `highest-degree trend should lead the grid, got ${before.firstCardId}`);
+    assert(before.cardCount >= 8, `expected a populated single-trend feed, got ${before.cardCount} topics`);
+    assert(before.singleMode, 'Home should open in the immersive single-trend feed mode');
+    assert(before.firstCardId === 'humanoidrobots', `highest-degree trend should lead the feed, got ${before.firstCardId}`);
     assert(before.carouselIndicators === 0, `top carousel indicators should not render, got ${before.carouselIndicators}`);
     assert(before.mountedVideos <= 4, `too many videos mounted initially: ${before.mountedVideos}`);
 
-    // scrolling the grid reveals more cards without exceeding the video cap
+    // scrolling the feed reveals more trends without exceeding the video cap
     await cdp.send('Input.dispatchMouseEvent', {
       type: 'mouseWheel',
       x: 195,
@@ -213,11 +213,11 @@ async function main() {
     }, sessionId);
     await sleep(800);
     const afterScroll = await readState(cdp, sessionId);
-    assert(afterScroll.scrollTop > 300, `vertical scroll should move the grid, got ${afterScroll.scrollTop}`);
+    assert(afterScroll.scrollTop > 300, `vertical scroll should move the feed, got ${afterScroll.scrollTop}`);
     assert(afterScroll.mountedVideos <= 4, `too many videos mounted after scroll: ${afterScroll.mountedVideos}`);
 
-    // tapping a card opens its trend page, then back returns to the feed
-    await evaluate(cdp, sessionId, `document.querySelector('#feed .fcard').click()`);
+    // tapping a trend's metadata opens its detail page, then back returns to the feed
+    await evaluate(cdp, sessionId, `document.querySelector('#feed .topic [data-go]').click()`);
     await waitFor(cdp, sessionId, `document.getElementById('s-detail').classList.contains('active')`, 'trend detail from card tap');
     await evaluate(cdp, sessionId, `document.getElementById('det-back').click()`);
     await waitFor(cdp, sessionId, `document.getElementById('s-feed').classList.contains('active')`, 'feed return from detail');
@@ -255,7 +255,7 @@ async function main() {
 }
 
 async function waitForApp(cdp, sessionId) {
-  await waitFor(cdp, sessionId, 'Boolean(document.querySelector("#feed .fcard"))', 'feed grid');
+  await waitFor(cdp, sessionId, 'Boolean(document.querySelector("#feed .topic [data-go]"))', 'single-trend feed');
 }
 
 async function waitFor(cdp, sessionId, expression, label) {
@@ -281,12 +281,12 @@ async function evaluate(cdp, sessionId, expression) {
 async function readState(cdp, sessionId) {
   return evaluate(cdp, sessionId, `(() => {
     const feed = document.getElementById('feed');
-    const cards = Array.from(document.querySelectorAll('#feed .fcard'));
+    const cards = Array.from(document.querySelectorAll('#feed .topic'));
     return {
       scrollTop: Math.round(feed.scrollTop),
       cardCount: cards.length,
       firstCardId: cards[0] && cards[0].getAttribute('data-id'),
-      columns: getComputedStyle(feed).gridTemplateColumns.split(' ').filter(Boolean).length,
+      singleMode: feed.classList.contains('single'),
       carouselIndicators: document.querySelectorAll('[data-dots], .dots').length,
       mountedVideos: document.querySelectorAll('#feed video').length,
     };

@@ -1,9 +1,16 @@
 {
+  "name": "noise-curator-v3.1",
+  "version": "3.1.0",
   "private": true,
   "scripts": {
+    "dev": "node scripts/dev-server.mjs",
+    "start": "node scripts/dev-server.mjs",
     "check": "npm run check:basic && npm run check:mobile",
     "check:basic": "node scripts/basic-regression.mjs",
     "check:mobile": "node scripts/mobile-carousel-smoke.mjs"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "devDependencies": {
     "playwright": "^1.61.1",

@@ -13,6 +13,7 @@ media/mewing/
 
 # Deps + tooling
 node_modules/
+.vercel/
 scripts/_qa-final.mjs
 scripts/fetch-media.sh
 scripts/fetch-media-retry.sh
