@@ -29,6 +29,7 @@
   --avatar-ring:0 0 0 1px rgba(0,0,0,.16);
   --hdr:90px;
   --tabh:84px;
+  --page-gutter:20px;
 }
 /* ===== LIGHT MODE ink contexts =====
    Page chrome is black-on-white. Anything burned onto full-bleed media keeps
@@ -73,7 +74,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 /* When zooming into a trend, the WAAPI scale drives the entrance — suppress the default fade so they don't fight. */
 .screen.zooming{animation:none;will-change:transform,opacity;}
 @media (prefers-reduced-motion:reduce){.screen.active{animation:none;}}
-.scrollarea{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;padding:64px 20px calc(var(--tabh) + 16px);}
+.scrollarea{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;padding:64px var(--page-gutter) calc(var(--tabh) + 16px);}
 .scrollarea::-webkit-scrollbar{width:0;}
 
 /* ===== FEED (Cosmos-style discovery grid) ===== */
@@ -248,10 +249,10 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 .dcar.dragging,.cs-scroll.dragging,#ex-list .ex-car.dragging{cursor:grabbing;}
 .dcar::-webkit-scrollbar,.cs-scroll::-webkit-scrollbar,#ex-list .ex-car::-webkit-scrollbar{display:none;width:0;height:0;}
 .dcar img,.dcar video,.cs-scroll img,.cs-scroll video,#ex-list .ex-car video{-webkit-user-drag:none;-webkit-user-select:none;user-select:none;}
-.dcar{position:relative;z-index:1;flex:none;height:400px;margin-top:52px;display:flex;gap:10px;margin-left:-20px;margin-right:-20px;padding:0 20px 0 40px;}
+.dcar{position:relative;z-index:1;flex:none;height:400px;margin-top:52px;display:flex;gap:10px;margin-left:calc(var(--page-gutter) * -1);margin-right:calc(var(--page-gutter) * -1);padding:0 var(--page-gutter);}
 .dtile{position:relative;flex:0 0 auto;height:100%;aspect-ratio:205/444;scroll-snap-align:start;border:none;padding:0;margin:0;cursor:pointer;border-radius:var(--r-lg);overflow:hidden;background-size:cover;background-position:center;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);}
 .dtile-vid{width:100%;height:100%;object-fit:cover;display:block;}
-.dh-meta{position:relative;z-index:1;flex:none;padding:14px 20px 18px;display:flex;flex-direction:column;gap:0;}
+.dh-meta{position:relative;z-index:1;flex:none;padding:14px 0 18px;display:flex;flex-direction:column;gap:0;}
 .dh-toprow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:11px;}
 .dh-toprow .dheat{margin-bottom:0;}
 .dh-meta .dh-user{margin-top:13px;}
@@ -284,8 +285,8 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 #d-save.on{color:var(--muted);}
 #d-save.on svg{fill:currentColor;}
 /* ===== Create List (user, untradable) ===== */
-/* Board (media cards) sits at the feed edge (14px); text header is inset to 40px to match the
-   trend page's content margin (scrollarea 20 + inner 20), like the trend page's text vs media. */
+/* Board media stays at the compact 14px gallery edge; the header adds 12px so controls
+   have a little more breathing room than the cards without affecting standard page gutters. */
 #s-newlist .scrollarea{padding:var(--hdr) 14px calc(env(safe-area-inset-bottom) + 104px);}
 .nl-head{display:flex;align-items:center;gap:12px;margin:6px 12px 18px;}
 .nl-name{flex:1;min-width:0;width:auto;font:inherit;font-size:22px;font-weight:800;color:var(--paper);background:none;border:none;border-bottom:1px solid var(--glass-stroke);padding:6px 0 12px;margin:0;}
@@ -454,7 +455,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 .cf-cover{position:absolute;inset:0;z-index:1;background-size:cover;background-position:center;}
 .cf-badge{width:22px;height:22px;flex:none;border-radius:8px;background:rgba(11,12,15,.42);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;}
 .cf-badge svg{width:13px;height:13px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linejoin:round;}
-.nl-bar{position:absolute;left:0;right:0;bottom:0;z-index:90;padding:12px 20px calc(env(safe-area-inset-bottom) + 14px);background:linear-gradient(to top,var(--bg) 78%,transparent);}
+.nl-bar{position:absolute;left:0;right:0;bottom:0;z-index:90;padding:12px var(--page-gutter) calc(env(safe-area-inset-bottom) + 14px);background:linear-gradient(to top,var(--bg) 78%,transparent);}
 .nl-create{width:100%;font:inherit;font-size:15px;font-weight:800;color:#FFFFFF;background:var(--paper);border:none;border-radius:var(--r-md);padding:14px 0;cursor:pointer;transition:opacity .15s;}
 .nl-create[data-disabled="1"]{opacity:.4;pointer-events:none;}
 
@@ -479,7 +480,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 .cprof-add-dot{color:var(--rel);}
 
 /* ===== Curator: create a trend ===== */
-#s-createtrend .scrollarea{padding:var(--hdr) 22px calc(env(safe-area-inset-bottom) + 104px);}
+#s-createtrend .scrollarea{padding:var(--hdr) var(--page-gutter) calc(env(safe-area-inset-bottom) + 104px);}
 .ct-eyebrow{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--rel);margin:0 0 10px;}
 .ct-h{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.15;color:var(--paper);margin:0 0 8px;}
 .ct-sub{font-size:14px;line-height:1.5;color:var(--muted);margin:0 0 18px;}
@@ -614,7 +615,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 /* Degree alerts removed. */
 .dh-role{color:var(--muted);font-weight:600;letter-spacing:.02em;}
 
-.dbody{padding:6px 20px 0;}
+.dbody{padding:6px 0 0;}
 .dheat{display:flex;align-items:center;flex-wrap:wrap;gap:11px;margin-bottom:10px;}
 .dheat .deg{font-size:38px;font-weight:800;letter-spacing:-.02em;color:var(--paper);line-height:1;text-shadow:none;}
 .dheat .sentmini{font-size:13px;font-weight:700;padding:5px 11px;border-radius:var(--r-pill);font-variant-numeric:tabular-nums;text-shadow:none;}
@@ -961,7 +962,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   /* trend description */
   .d-desc{font-size:15px;line-height:1.5;color:rgba(0,0,0,.75);margin:10px 0 0;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;}
   /* sub-trends (horizontal cards, posts-placeholder media size) */
-  .subs-scroll{display:flex;gap:8px;overflow-x:auto;touch-action:pan-x;overscroll-behavior-x:contain;scroll-snap-type:x proximity;margin:0 -40px;padding:0 40px;scroll-padding-left:40px;}
+  .subs-scroll{display:flex;gap:8px;overflow-x:auto;touch-action:pan-x;overscroll-behavior-x:contain;scroll-snap-type:x proximity;margin:0 calc(var(--page-gutter) * -1);padding:0 var(--page-gutter);scroll-padding-left:var(--page-gutter);}
   .subs-scroll::-webkit-scrollbar{height:0;}
   .subcard{flex:0 0 158px;scroll-snap-align:start;display:flex;flex-direction:column;gap:0;background:none;border:none;padding:2px;text-align:left;cursor:pointer;color:inherit;font:inherit;transition:transform var(--t-fast);}
   .subcard:active{transform:scale(.97);}
@@ -1028,7 +1029,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   /* ===== Collections — horizontal album row ===== */
   .curators-sec{margin:18px 0 4px;}
   .cs-h{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:0 2px 12px;}
-  .cs-scroll{display:flex;gap:12px;margin:0 -40px;padding:0 40px;}
+  .cs-scroll{display:flex;gap:12px;margin:0 calc(var(--page-gutter) * -1);padding:0 var(--page-gutter);}
   /* The trend-page collection card uses the SAME form as the profile collection placeholder:
      the card is a flex column, the cover reuses .cprof-cc-cover (iPhone 17 Pro 1206/2622,
      18px corners), and the title/meta render as text BELOW the cover via .cprof-cc-t/-sub. */
@@ -1282,7 +1283,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   #cmp-post{margin-top:8px;}
 
   /* ===== Trend page: the single relevance chart shown to everyone ===== */
-  .pro-detail{display:block;padding:14px 20px 4px;}
+  .pro-detail{display:block;padding:14px 0 4px;}
   .schart{margin:0;}
   .schart-tabs{display:flex;gap:6px;margin:0 0 10px;}
   .schart-tabs button{flex:1;background:rgba(0,0,0,.045);border:1px solid var(--glass-stroke);color:var(--muted);font:inherit;font-weight:700;font-size:12px;padding:7px 0;border-radius:var(--r-xs);cursor:pointer;transition:background .15s,color .15s,border-color .15s;}
@@ -1311,12 +1312,10 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   .schart-cap b{color:var(--paper);font-weight:700;}
   /* Split-screen chart: the chart stays fixed on top; the timeline scrolls below it on its own. */
   #s-chart{display:flex;flex-direction:column;}
-  /* var(--hdr) clears the absolute back button so the title never sits under the arrow. The 40px
-     side padding matches the trend page's content inset (scrollarea 20px + inner 20px) so the chart,
-     header, and timeline share the same left margin as the trend detail screen. */
-  .chart-fixed{flex:none;padding:var(--hdr) 40px 4px;}
+  /* var(--hdr) clears the absolute back button so the title never sits under the arrow. */
+  .chart-fixed{flex:none;padding:var(--hdr) var(--page-gutter) 4px;}
   #s-chart .schart{max-width:640px;margin:0 auto;}
-  .chart-tl-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding:6px 40px calc(var(--tabh) + 16px);}
+  .chart-tl-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding:6px var(--page-gutter) calc(var(--tabh) + 16px);}
   #chart-tl{max-width:640px;margin:0 auto;}
   .chart-screen-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 12px;}
   .csh-nm{font-size:22px;font-weight:800;letter-spacing:-.01em;color:var(--paper);}
@@ -1424,13 +1423,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 
   /* ===== Creator profile ===== */
   #s-profile .scrollarea{padding-top:calc(max(env(safe-area-inset-top),48px) + 16px);}
-  /* Content-inset parity with the trend page: its text sits at 40px (scrollarea 20 + inner 20),
-     so every text-first sub-screen uses the same left/right margin. */
-  #s-profile .scrollarea,#s-forecasts .scrollarea,#s-signaldetail .scrollarea,
-  #s-settings .scrollarea,#s-security .scrollarea,#s-help .scrollarea,#s-invite .scrollarea,
-  #s-notif .scrollarea,#s-editprofile .scrollarea,#s-userlist .scrollarea,#s-saved .scrollarea,
-  #s-timeline .scrollarea,#s-article .scrollarea{padding-left:40px;padding-right:40px;}
-  .prof-banner{height:148px;margin:0 -20px -52px;border-radius:0 0 var(--r-lg) var(--r-lg);position:relative;}
+  .prof-banner{height:148px;margin:0 calc(var(--page-gutter) * -1) -52px;border-radius:0 0 var(--r-lg) var(--r-lg);position:relative;}
   .prof-banner::after{content:"";position:absolute;inset:0;border-radius:inherit;
     background:linear-gradient(180deg,rgba(0,0,0,.34) 0%,rgba(11,12,15,0) 34%,rgba(11,12,15,.66) 100%);}
   .prof-badge{display:inline-block;margin-top:8px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
@@ -1603,9 +1596,9 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   #ex-list .ex-row{display:flex;align-items:stretch;gap:0;padding:14px 0;position:relative;}
   /* carousel occupies the left half but bleeds LEFT to the screen edge so tiles can
      scroll past the page margin without a hard "black border" clip at the margin */
-  #ex-list .ex-car-wrap{position:relative;flex:0 0 auto;width:calc(50% + 20px);height:216px;
-    margin-left:-20px;}
-  #ex-list .ex-car{display:flex;gap:8px;height:100%;overflow-y:hidden;padding-left:20px;}
+  #ex-list .ex-car-wrap{position:relative;flex:0 0 auto;width:calc(50% + var(--page-gutter));height:216px;
+    margin-left:calc(var(--page-gutter) * -1);}
+  #ex-list .ex-car{display:flex;gap:8px;height:100%;overflow-y:hidden;padding-left:var(--page-gutter);}
   #ex-list .ex-tile{position:relative;flex:none;height:100%;aspect-ratio:205/444;border-radius:var(--r-lg);overflow:hidden;
     box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);background-size:cover;background-position:center;scroll-snap-align:start;}
   /* fade on the right edge of the carousel — narrow (≤1/3) and smoothly blends into bg */
