@@ -1748,7 +1748,7 @@
     // Actions row: Add + Edit for you, Follow for others.
     var actions=document.getElementById('pf-actions');
     if(actions)actions.innerHTML=self
-      ? '<button class="cprof-edit" id="pf-edit">Edit profile</button>'
+      ? '<button class="cprof-edit secondary-cta" id="pf-edit">Edit profile</button>'
       : '<button class="cprof-edit cprof-follow'+(isFollowing(handle)?' on':'')+'" id="pf-followbtn">'+(isFollowing(handle)?'Following':'Follow')+'</button>';
     // Tabbed panes: Collections · Signals · Posts · Trends (one grid at a time).
     renderProfileSections(handle,p);
@@ -3452,7 +3452,7 @@
       // actions
       '<div class="sig-actions">'+
         '<button class="cta-place" data-resolve="'+idx+'">Resolve</button>'+
-        '<button class="sig-viewtrend" data-go-trend="'+p.id+'">View trend</button>'+
+        '<button class="sig-viewtrend secondary-cta" data-go-trend="'+p.id+'">View trend</button>'+
       '</div>';
     releaseMediaIn(document.getElementById('sig-content'));
     document.getElementById('sig-content').innerHTML=html;

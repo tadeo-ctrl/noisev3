@@ -74,6 +74,31 @@ assert(!html.includes('edit-avbadge') && !html.includes('edit-avhint') && !html.
 assert(appJs.includes('function avatarStyle(') && appJs.includes('function paintAvatar('), 'all avatar surfaces should share image-or-color rendering');
 assert(appJs.includes('function uploadAvatar(') && appJs.includes('paintOwnAvatarChrome()'), 'avatar uploads must update shared account chrome');
 assert(appJs.includes("value=p.name||'Tadeo'"), 'avatar-only profile edits must preserve the default display name');
+assert(
+  html.includes('class="cprof-edit secondary-cta" id="pf-edit"') &&
+  appJs.includes('class="cprof-edit secondary-cta" id="pf-edit"'),
+  'the owner Profile action must keep its secondary CTA treatment after Profile re-renders'
+);
+assert(
+  html.includes('class="ct-cta secondary-cta" id="ct-taken-back"') &&
+  appJs.includes('class="sig-viewtrend secondary-cta"'),
+  'full-width secondary actions must share the secondary CTA treatment'
+);
+assert(
+  css.includes('--secondary-cta-bg:#EDEDED') &&
+  css.match(/\.secondary-cta,\.cprof-edit\.cprof-follow\.on,\.cb-follow\.on\{[^}]*background:var\(--secondary-cta-bg\)[^}]*color:#0A0A0A[^}]*border:none/),
+  'secondary CTAs must use a solid light-gray fill, dark text, and no border'
+);
+assert(
+  css.match(/\.cprof-edit\.cprof-follow\{[^}]*background:var\(--paper\)[^}]*color:#FFFFFF[^}]*border:none/) &&
+  css.match(/\.cb-follow\{[^}]*border:none[^}]*background:var\(--paper\)[^}]*color:#FFFFFF/),
+  'Follow controls must use primary black and switch to the shared secondary style when Following'
+);
+assert(
+  css.includes('.cb-follow.sm{width:90px;') && css.includes('#pf-followbtn{flex:0 0 162px;width:162px;'),
+  'Follow controls must not resize when their labels switch between Follow and Following'
+);
+assert(!css.includes('.ct-cta.ghost'), 'legacy outlined secondary CTA styling should be removed');
 
 const clipManifest = dataJs.match(/var CLIPS=\{([^}]+)\}/);
 assert(clipManifest, 'CLIPS manifest is required');
