@@ -1,6 +1,6 @@
 # NOISE Platform Context
 
-Last updated: 2026-07-09
+Last updated: 2026-07-13
 
 ## Product Idea
 
@@ -110,3 +110,8 @@ The system should guard against:
 NOISE should make all trends accessible somewhere, but not all trends deserve high-discovery placement.
 
 High-discovery areas, especially the main swipe feed, should require both relevance and enough presentation quality to avoid making the product feel low quality.
+
+## Prototype Interaction And Terminology
+
+- User-authored discussion items are `Posts`. Do not name app surfaces or actions `Conversations`.
+- Horizontal media and card rails should feel like native app gestures: direct swipe or pointer drag, no visible browser scrollbar, and uninterrupted vertical page scrolling.
