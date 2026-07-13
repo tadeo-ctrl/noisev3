@@ -232,8 +232,8 @@
   // ===== Canonical tile media. Every placeholder in the app resolves through these. =====
   // A tile must NEVER be an empty gradient. Chain: the trend's own still -> a surviving clip
   // poster -> (if neither) mount the clip itself so something is always moving.
-  // Claude / Humanoid Robots / Game Boy have clips but no stills and no posters, which is exactly
-  // the case that used to render blank in Favorites.
+  // Some trends have clips but no separate photo stills. Their clip posters keep Favorites and
+  // other static tiles visually complete before a video is mounted.
   function tileStill(id,i){
     var t=T[id]; if(!t)return '';
     var ims=imgsOf(t);
@@ -2605,8 +2605,8 @@
     renderFavorites();
   }
   function favCardHTML(goId,coverId,title,sub){
-    // If the trend has no still and no poster (Claude, Humanoid Robots), mount its clip so the
-    // card plays rather than sitting as a flat gradient.
+    // If the trend has neither a still nor a surviving poster, mount its clip so the card plays
+    // rather than sitting as a flat gradient.
     var vs=tileVidAttrs(coverId,1);
     return '<button class="cprof-cc" data-go-trend="'+goId+'">'+
       '<span class="cprof-cc-cover"'+vs+' style="'+collCover(coverId)+'"></span>'+

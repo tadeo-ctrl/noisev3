@@ -1530,7 +1530,7 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   .cprof-cc{display:flex;flex-direction:column;background:none;border:none;padding:0;text-align:left;cursor:pointer;color:inherit;font:inherit;transition:transform .12s;}
   .cprof-cc:active{transform:scale(.98);}
   /* position:relative so a mounted <video class="vid"> (position:absolute;inset:0) can fill it —
-     without it, trends with no still/poster (Claude, Humanoid Robots) rendered as a flat gradient. */
+     without it, clip-only trends with no surviving poster render as a flat gradient. */
   .cprof-cc-cover{position:relative;width:100%;aspect-ratio:1206/2622;border-radius:18px;overflow:hidden;background-size:cover;background-position:center;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);}
   .cprof-cc-cover.new{display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.04);border:1px dashed rgba(0,0,0,.22);box-shadow:none;}
   .cprof-cc-cover.new svg{width:34px;height:34px;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;}
