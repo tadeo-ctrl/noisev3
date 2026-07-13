@@ -99,6 +99,30 @@ assert(
   'Follow controls must not resize when their labels switch between Follow and Following'
 );
 assert(!css.includes('.ct-cta.ghost'), 'legacy outlined secondary CTA styling should be removed');
+assert(
+  css.includes('--segmented-bg:var(--secondary-cta-bg);') &&
+  css.includes('--segmented-active-bg:#DEDEDE;') &&
+  css.includes('--segmented-active-border:1px solid rgba(0,0,0,.30);'),
+  'compact segmented controls must share one inactive, active, and active-border token set'
+);
+assert(
+  css.match(/\.schart-tabs button\{[^}]*background:var\(--segmented-bg\)[^}]*border:none/) &&
+  css.match(/\.schart-tabs button\.on\{[^}]*background:var\(--segmented-active-bg\)[^}]*border:var\(--segmented-active-border\)/),
+  'chart period tabs must only show a border on the darker active option'
+);
+assert(
+  css.match(/\.chip\{[^}]*background:var\(--segmented-bg\)[^}]*border:none/) &&
+  css.match(/\.chip\[aria-pressed=true\]\{[^}]*background:var\(--segmented-active-bg\)[^}]*border:var\(--segmented-active-border\)/) &&
+  css.match(/\.fc-tab\[aria-current="true"\]\{[^}]*background:var\(--segmented-active-bg\)[^}]*border:var\(--segmented-active-border\)/),
+  'compact choice chips and wallet tabs must use the shared segmented-control states'
+);
+assert(
+  css.includes('.schart-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));') &&
+  css.includes('.fc-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));') &&
+  css.includes('.chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));'),
+  'segmented options must keep equal widths when the active border moves between choices'
+);
+assert(!css.includes('#addsheet .chip[aria-pressed=true]'), 'Add credits must not override the shared segmented active state');
 
 const clipManifest = dataJs.match(/var CLIPS=\{([^}]+)\}/);
 assert(clipManifest, 'CLIPS manifest is required');
