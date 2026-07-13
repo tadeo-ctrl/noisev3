@@ -200,9 +200,22 @@
     var v=document.createElement('video');
     v.className='vid';
     v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('muted','');v.setAttribute('playsinline','');v.preload=isPhone?'metadata':'auto';v.style.zIndex='1';
+    // Keep the parent poster/gradient visible until the decoder has a real frame. Appending an
+    // unready <video> can otherwise flash an opaque black rectangle, especially during a zoom.
+    v.style.opacity='0';v.style.transition='opacity .18s ease';
+    function revealDecodedVideo(){
+      var warmAt=(isFinite(v.duration)&&v.duration>0)?Math.min(1.1,v.duration*.5):1.1;
+      if(v.currentTime<warmAt)return;
+      v.removeEventListener('timeupdate',revealDecodedVideo);
+      if(el._v===v)v.style.opacity='1';
+    }
+    v.addEventListener('timeupdate',revealDecodedVideo);
     if(poster)v.setAttribute('poster',poster);
     // Keep the same still on the card itself so unmount (scroll-away) reveals the frame, not the gradient.
-    v.addEventListener('error',function(){if(el._v===v)el._v=null;v.remove();});
+    v.addEventListener('error',function(){
+      var liveIndex=_vlive.indexOf(el);if(liveIndex>=0)_vlive.splice(liveIndex,1);
+      if(el._v===v)el._v=null;v.remove();
+    });
     v.src=withV(src);
     el.appendChild(v);el._v=v;
     // Drop the theme-color wash over the actual video (kept only for no-clip placeholder cards).
@@ -283,7 +296,7 @@
     return ordered;
   }
   function mediaItemsOf(t){ return orderedMedia(t,t.id); }
-  function topicHTML(t,id){
+  function topicHTML(t,id,compact){
     var items=mediaItemsOf(t);
     var niche=t.kind==='niche';
     var cur=CUR[id]||{calls:10,hit:0.7,rallied:20,yf:0,col:"#D8C9A4"};
@@ -297,8 +310,9 @@
     var social='<span class="nh-count"><b>'+t.fc+'</b> curators</span>'
         +(follow>0?'<span class="dotsep">·</span><span class="nh-follow"><span class="facepile">'+faces+'</span><b>'+follow+'</b> you follow</span>':'');
     var curator='<div class="curator">'+social+'</div>';
-    var media=items.map(function(m){return mediaHTML(t,m);}).join('');
-    return '<div class="mtrack" data-track>'+media+'</div>'+
+    var active=(carousel[id]&&carousel[id].i)||0;
+    var media=compact?mediaHTML(t,items[active]||items[0]):items.map(function(m){return mediaHTML(t,m);}).join('');
+    return '<div class="mtrack" data-track'+(compact?' data-feed-shell="1"':'')+'>'+media+'</div>'+
       '<div class="scrim-bot"></div>'+
       '<div class="fmeta" data-go role="button">'+
         '<div class="metarow"><span class="deg'+(t.up?'':' dn')+'">'+t.deg+'°</span><span class="sentmini '+(t.up?'up':'dn')+'">'+sentLabel+'</span></div>'+
@@ -373,32 +387,55 @@
   // Feed zoom ladder (innermost -> outermost): 'single' full-screen trend feed -> 'board' 2-col
   // masonry -> galaxy (GX overlay). Home opens in 'single'.
   var feedMode='single';
+  // Full media carousels are hydrated only near the viewport. Far-away trends keep one lightweight
+  // poster/still shell, preserving scroll geometry without parsing and retaining every slide.
+  var topicHydrator=new IntersectionObserver(function(entries){entries.forEach(function(e){
+    if(e.isIntersecting)hydrateFeedTopic(e.target);else collapseFeedTopic(e.target);
+  });},{root:feed,rootMargin:'110% 0px',threshold:0});
+  function hydrateFeedTopic(el){
+    if(!el||!el.isConnected||!feed.contains(el)||el.getAttribute('data-hydrated')==='1')return;
+    var id=el.getAttribute('data-id'),t=T[id],track=el.querySelector('[data-track]');if(!t||!track)return;
+    track.innerHTML=mediaItemsOf(t).map(function(m){return mediaHTML(t,m);}).join('');
+    track.removeAttribute('data-feed-shell');el.setAttribute('data-hydrated','1');
+    wireCarousel(el,id);observeVids(el);refreshActiveMedia(el);
+  }
+  function collapseFeedTopic(el){
+    if(!el||!el.isConnected||!feed.contains(el)||el.getAttribute('data-hydrated')!=='1')return;
+    var id=el.getAttribute('data-id'),t=T[id],track=el.querySelector('[data-track]'),c=carousel[id];if(!t||!track||!c)return;
+    releaseMediaIn(el);
+    var items=mediaItemsOf(t),m=items[c.i]||items[0];
+    track.innerHTML=mediaHTML(t,m);track.setAttribute('data-feed-shell','1');el.setAttribute('data-hydrated','0');
+    renderCubePosition(el,id,0,true);
+  }
   // Innermost state: the full-screen, one-trend-per-screen immersive feed (swipe up/down between
   // trends, left/right through a trend's media via the cube carousel). Reuses topicHTML + wireCarousel.
   function renderFeedSingle(kind,restoreId){
     feedKind=kind;
+    topicHydrator.disconnect();
     releaseMediaIn(feed);
     var ids=(ORDERS[kind]||order), html='';
     ids.forEach(function(id){
       var t=T[id]; if(!t)return;
       var items=mediaItemsOf(t);
       carousel[id]={i:(leadSlide[id]||0), n:Math.max(1,items.length)};
-      html+='<div class="topic" data-id="'+id+'">'+topicHTML(t,id)+'</div>';
+      html+='<div class="topic" data-id="'+id+'" data-hydrated="0">'+topicHTML(t,id,true)+'</div>';
     });
     feed.classList.add('single');
     feed.classList.remove('zoomout','zoomfar');
     feed.innerHTML=html;
-    feed.querySelectorAll('.topic').forEach(function(el){ wireCarousel(el, el.getAttribute('data-id')); });
-    observeVids(feed);
     setBal();
+    var activeTopic=null;
     if(restoreId){
       var tg=feed.querySelector('.topic[data-id="'+restoreId+'"]');
-      if(tg){feed.scrollTop=tg.offsetTop;currentId=restoreId;} else feed.scrollTop=0;
+      if(tg){feed.scrollTop=tg.offsetTop;currentId=restoreId;activeTopic=tg;} else feed.scrollTop=0;
     }else feed.scrollTop=0;
-    refreshActiveMedia(feed);
+    if(!activeTopic)activeTopic=feed.querySelector('.topic');
+    hydrateFeedTopic(activeTopic);
+    feed.querySelectorAll('.topic').forEach(function(el){topicHydrator.observe(el);});
   }
   function renderFeed(kind,restoreId){
     if(feedMode==='single'){ return renderFeedSingle(kind,restoreId); }
+    topicHydrator.disconnect();
     feed.classList.remove('single');
     feedKind=kind;
     releaseMediaIn(feed);
@@ -490,6 +527,8 @@
     var track=el.querySelector('[data-track]'),c=carousel[id],x0=0,y0=0,t0=0,axis='',pid=null,start=0;
     if(!track||!c)return;
     renderCubePosition(el,id,c.i,true);
+    if(track._carouselBound)return;
+    track._carouselBound=1;
     if(c.n<2){
       track.addEventListener('pointerdown',function(e){
         if(e.button!=null&&e.button!==0)return;
@@ -586,7 +625,7 @@
   // tiles are created only when they enter the buffered viewport and recycled when they leave, so
   // it never ends and never shows blank space. Trend + media are cached per cell, chosen so the
   // same trend is never visible twice at once, with a different clip/photo on each repeat.
-  var GX={open:false,panX:0,panY:0,W:0,H:0,colW:98,gap:8,margin:300,
+  var GX={open:false,panX:0,panY:0,W:0,H:0,colW:98,gap:8,margin:110,
           tiles:{},colTop:{},cache:{},raf:0,vx:0,vy:0,drag:null,inited:false};
   var zAccum=0, feedPanSuppress=false, _prevMaxVids=null;
   var gxLayer=document.getElementById('gx-layer'), galaxyEl=document.getElementById('galaxy');
@@ -639,7 +678,10 @@
     el.classList.remove('loaded'); el.setAttribute('data-go-trend',a.id);
     el.innerHTML=gxTileHTML(col,k,a);
     var vm=el.querySelector('[data-vsrc]');
-    if(vm){ mountVid(vm); el.classList.add('loaded'); }              // video: poster/clip reveals immediately
+    if(vm){
+      applyMediaPoster(vm);vmount.observe(vm);
+      el.classList.add('loaded');
+    }
     else if(!el.querySelector('img.gx-media')){ el.classList.add('loaded'); }  // no media: show the gradient floor
   }
   function gxMakeTile(col,k){
@@ -664,7 +706,7 @@
         if(cand.length){ var key=tl.col+'|'+tl.k, rnd=gxRand(gxSeed(tl.col,tl.k)^0x5bd1e995);
           var nid=cand[Math.floor(rnd()*cand.length)];
           GX.cache[key]={id:nid,v:Math.floor(rnd()*997)};
-          var vm=tl.el.querySelector('[data-vsrc]'); if(vm)unmountVid(vm);
+          var vm=tl.el.querySelector('[data-vsrc]'); if(vm){unmountVid(vm);vmount.unobserve(vm);}
           tl.id=nid; gxSetContent(tl.el,tl.col,tl.k,GX.cache[key]); }
       }
       seen[tl.id]=1;
@@ -683,7 +725,7 @@
         if(!GX.tiles[key])GX.tiles[key]=gxMakeTile(col,k); }
     }
     for(var ek in GX.tiles){ if(!need[ek]){ var tl=GX.tiles[ek];
-      var vm=tl.el.querySelector('[data-vsrc]'); if(vm)unmountVid(vm);
+      var vm=tl.el.querySelector('[data-vsrc]'); if(vm){unmountVid(vm);vmount.unobserve(vm);}
       tl.el.remove(); delete GX.tiles[ek]; } }
     gxEnforceUnique();
   }
@@ -695,10 +737,14 @@
     GX.raf=requestAnimationFrame(step); }
   function gxOpen(){ if(GX.open)return; GX.open=true; feedPanSuppress=false;
     GX.W=feed.clientWidth||galaxyEl.clientWidth||390; GX.H=feed.clientHeight||galaxyEl.clientHeight||780;
+    GX.margin=GX.W<=600?110:240;
     if(!GX.inited){ GX.panX=Math.round((GX.W-GX.colW)/2 - (GX.colW+GX.gap)); GX.panY=Math.round(GX.H*0.12); GX.inited=true; }
     // let every visible clip play while browsing the board (bounded for safety on phone)
-    if(_prevMaxVids===null){_prevMaxVids=MAXVIDS; MAXVIDS=isPhone?10:36;}
+    if(_prevMaxVids===null){_prevMaxVids=MAXVIDS; MAXVIDS=GX.W<=600?6:12;}
     gxApply(); gxReconcile();
+    // Reconciliation appends the tiles in their quiet starting state. Flush once so the opacity
+    // and scale transition begins from a painted frame rather than skipping straight to the end.
+    void galaxyEl.offsetWidth;
     galaxyEl.classList.add('on'); galaxyEl.setAttribute('aria-hidden','false');
     document.getElementById('s-feed').classList.add('gx-on');
   }
@@ -706,19 +752,93 @@
     galaxyEl.classList.remove('on'); galaxyEl.setAttribute('aria-hidden','true');
     document.getElementById('s-feed').classList.remove('gx-on');
     if(_prevMaxVids!==null){MAXVIDS=_prevMaxVids;_prevMaxVids=null;}
-    var teardown=function(){ for(var k in GX.tiles){ var vm=GX.tiles[k].el.querySelector('[data-vsrc]'); if(vm)unmountVid(vm); GX.tiles[k].el.remove(); } GX.tiles={}; };
+    var teardown=function(){ for(var k in GX.tiles){ var vm=GX.tiles[k].el.querySelector('[data-vsrc]'); if(vm){unmountVid(vm);vmount.unobserve(vm);} GX.tiles[k].el.remove(); } GX.tiles={}; };
     if(immediate)teardown(); else setTimeout(function(){ if(!GX.open)teardown(); },520);
+  }
+  var ZOOM_EASE='cubic-bezier(.32,.72,0,1)',ZOOM_DURATION=440;
+  var zoomTransitioning=false,zoomTransitionTimer=0;
+  function setZoomBusy(on){
+    zoomTransitioning=on;
+    var host=document.getElementById('s-feed'),menu=document.getElementById('feed-menu');
+    host.classList.toggle('feed-zooming',on);
+    if(on)menu.setAttribute('aria-busy','true');else menu.removeAttribute('aria-busy');
+  }
+  function finishZoomTransition(){
+    clearTimeout(zoomTransitionTimer);setZoomBusy(false);kickVideos();
+  }
+  function visibleFeedTopic(){
+    var topics=feed.querySelectorAll('.topic');if(!topics.length)return null;
+    var i=Math.max(0,Math.min(topics.length-1,Math.round(feed.scrollTop/Math.max(1,feed.clientHeight))));
+    return topics[i];
+  }
+  // Preserve the current full-screen card as a lightweight visual bridge while the board is built
+  // underneath it. The outgoing card and incoming board move as one spatial zoom, with no blank frame.
+  function zoomSingleToBoard(){
+    var topic=visibleFeedTopic(),host=document.getElementById('s-feed'),ghost=null;
+    if(topic)currentId=topic.getAttribute('data-id')||currentId;
+    if(prefersReducedMotion()||!feed.animate){feedMode='board';renderFeed(feedKind,currentId);kickVideos();return;}
+    setZoomBusy(true);
+    if(topic){
+      var clone=topic.cloneNode(true),active=clone.querySelector('.media[data-slide-visible="1"]')||clone.querySelector('.media');
+      clone.querySelectorAll('video').forEach(function(v){v.remove();});
+      clone.querySelectorAll('.media').forEach(function(m){
+        if(m===active){
+          m.style.transform='none';m.style.transformOrigin='center';m.style.opacity='1';m.style.visibility='visible';
+        }else m.remove();
+      });
+      clone.querySelectorAll('[id]').forEach(function(el){el.removeAttribute('id');});
+      ghost=document.createElement('div');ghost.className='feed-transition-ghost';ghost.appendChild(clone);host.appendChild(ghost);
+    }
+    requestAnimationFrame(function(){
+      feedMode='board';renderFeed(feedKind,currentId);
+      var incoming=feed.animate([{transform:'scale(1.055)',opacity:.12},{transform:'scale(1)',opacity:1}],{duration:ZOOM_DURATION,easing:ZOOM_EASE,fill:'both'});
+      incoming.onfinish=function(){incoming.cancel();};
+      if(ghost){
+        var out=ghost.animate([{transform:'scale(1)',opacity:1},{transform:'scale(.9)',opacity:0}],{duration:ZOOM_DURATION,easing:ZOOM_EASE,fill:'forwards'});
+        out.onfinish=out.oncancel=function(){if(ghost&&ghost.parentNode)ghost.remove();};
+      }
+      zoomTransitionTimer=setTimeout(finishZoomTransition,ZOOM_DURATION+40);
+    });
+  }
+  function openGalaxySmooth(){
+    if(prefersReducedMotion()){gxOpen();kickVideos();return;}
+    setZoomBusy(true);
+    requestAnimationFrame(function(){gxOpen();zoomTransitionTimer=setTimeout(finishZoomTransition,500);});
+  }
+  function closeGalaxySmooth(level){
+    if(prefersReducedMotion()){
+      if(level===0){feedMode='single';renderFeed(feedKind,currentId);}
+      gxClose(true);kickVideos();return;
+    }
+    setZoomBusy(true);
+    requestAnimationFrame(function(){
+      if(level===0){feedMode='single';renderFeed(feedKind,currentId);}
+      requestAnimationFrame(function(){gxClose(false);zoomTransitionTimer=setTimeout(finishZoomTransition,540);});
+    });
+  }
+  function swapFeedModeSmooth(mode){
+    if(prefersReducedMotion()||!feed.animate){feedMode=mode;renderFeed(feedKind,currentId);kickVideos();return;}
+    setZoomBusy(true);
+    var out=feed.animate([{transform:'scale(1)',opacity:1},{transform:'scale(1.025)',opacity:.18}],
+      {duration:140,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'});
+    out.onfinish=function(){
+      out.cancel();feedMode=mode;renderFeed(feedKind,currentId);
+      feed.animate([{transform:'scale(.965)',opacity:.18},{transform:'scale(1)',opacity:1}],
+        {duration:300,easing:ZOOM_EASE});
+      zoomTransitionTimer=setTimeout(finishZoomTransition,320);
+    };
   }
   // Zoom ladder: 0 = single (immersive) -> 1 = board (2-col masonry) -> 2 = galaxy (GX overlay).
   function currentZoom(){ return GX.open?2:(feedMode==='single'?0:1); }
   function setZoom(level){
     level=Math.max(0,Math.min(2,level));
+    if(zoomTransitioning)return;
     if(level===currentZoom())return;
-    if(level===2){ if(feedMode!=='board'){feedMode='board';renderFeed(feedKind);} gxOpen(); return; }
-    if(GX.open)gxClose(true);            // dropping in from galaxy
+    if(level===2){ if(feedMode!=='board'){feedMode='board';renderFeed(feedKind);} openGalaxySmooth(); return; }
+    if(GX.open){closeGalaxySmooth(level);return;}
     var mode=(level===0)?'single':'board';
-    if(feedMode!==mode){feedMode=mode;renderFeed(feedKind);}
-    kickVideos();
+    if(feedMode===mode)return;
+    if(feedMode==='single'&&mode==='board')zoomSingleToBoard();else swapFeedModeSmooth(mode);
   }
   // dz>0 => zoom OUT (one step toward the galaxy); dz<0 => zoom IN (one step toward the single feed).
   function nudgeZoom(dz){

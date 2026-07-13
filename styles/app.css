@@ -24,7 +24,7 @@
   /* radius scale */
   --r-pill:999px; --r-lg:22px; --r-md:16px; --r-sm:12px; --r-xs:8px;
   /* motion scale */
-  --t-fast:.12s; --t:.15s; --t-slow:.3s;
+  --t-fast:.12s; --t:.15s; --t-slow:.3s; --t-spatial:.44s; --ease-spatial:cubic-bezier(.32,.72,0,1);
   /* avatar ring */
   --avatar-ring:0 0 0 1px rgba(0,0,0,.16);
   --hdr:90px;
@@ -135,33 +135,32 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 .feed.zoomfar .feedcol{gap:6px;}
 .feed.zoomfar .fcard{border-radius:11px;}
 .feed.zoomfar .gc-top,.feed.zoomfar .gc-info,.feed.zoomfar .gc-scrim{display:none;}
-/* transient motion-blur while a zoom gesture is in flight (Cosmos-style spatial feel) */
-.feed{will-change:transform;}
-.feed.zooming{filter:blur(5px);}
+.feed-transition-ghost{position:absolute;inset:0;z-index:8;overflow:hidden;pointer-events:none;background:#0f0f13;contain:layout paint;}
+.feed-transition-ghost .topic{height:100%;}
+#s-feed.feed-zooming .feed,#s-feed.feed-zooming .galaxy,.feed-transition-ghost{will-change:transform,opacity;}
 /* zoomed-out "galaxy": a canvas larger than the screen you can pan in any direction.
    Columns take a fixed width so more columns = a wider board to explore. */
 /* ===== Infinite galaxy canvas (zoomed-out state) ===== */
-.galaxy{position:absolute;inset:0;z-index:2;background:var(--bg);overflow:hidden;touch-action:none;
+.galaxy{position:absolute;inset:0;z-index:2;background:var(--bg);overflow:hidden;touch-action:none;contain:layout paint;
   opacity:0;transform:scale(1.07);pointer-events:none;cursor:grab;
-  transition:opacity .5s ease, transform .58s cubic-bezier(.22,.61,.36,1);}
+  transition:opacity var(--t-spatial) var(--ease-spatial),transform var(--t-spatial) var(--ease-spatial);}
 .galaxy.on{opacity:1;transform:none;pointer-events:auto;}
 .galaxy:active{cursor:grabbing;}
 .gx-layer{position:absolute;top:0;left:0;width:0;height:0;will-change:transform;}
 .gx-tile{position:absolute;border:0;padding:0;margin:0;border-radius:12px;overflow:hidden;
-  background:#ECECF0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.07);cursor:pointer;color:inherit;font:inherit;}
+  background:#ECECF0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.07);cursor:pointer;color:inherit;font:inherit;contain:layout paint;}
 /* colourful floor so a tile is never blank, even before media loads */
 .gx-base{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;}
 .gx-media{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:cover;border:0;
   opacity:0;transition:opacity .45s ease;background-size:cover;background-position:center;}
 .gx-tile.loaded .gx-media{opacity:1;}
 .gx-tile video.vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
-/* unloaded placeholder: soft whitish-gray blur on top, fades out when media arrives */
-.gx-ph{position:absolute;inset:0;z-index:2;background:rgba(226,228,235,.34);
-  -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);opacity:1;transition:opacity .45s ease;pointer-events:none;}
+/* Lightweight placeholder: avoid one live backdrop-filter layer per offscreen tile. */
+.gx-ph{position:absolute;inset:0;z-index:2;background:rgba(226,228,235,.34);opacity:1;transition:opacity .3s ease;pointer-events:none;}
 .gx-tile.loaded .gx-ph{opacity:0;}
 /* gentle depth: the Home feed eases back a touch behind the fading-in galaxy */
-#s-feed .feed{transition:transform .58s cubic-bezier(.22,.61,.36,1);}
-#s-feed.gx-on .feed{transform:scale(.93);}
+#s-feed .feed{transition:transform var(--t-spatial) var(--ease-spatial),opacity .32s ease;}
+#s-feed.gx-on .feed{transform:scale(.94);opacity:.62;}
 .topic{height:100%;scroll-snap-align:start;position:relative;overflow:hidden;background:#0f0f13;}
 .mtrack{position:absolute;inset:0;height:100%;width:100%;overflow:hidden;background:#0f0f13;perspective:980px;transform-style:preserve-3d;
   touch-action:pan-y;overscroll-behavior-x:contain;-webkit-user-select:none;user-select:none;}
@@ -904,12 +903,17 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   /* ===== Feed header — seamless: menu / switcher / credits, no pills ===== */
   /* N logomark sits top-left (not centred) — tap it to zoom out. ＋ is the only thing on the right. */
   .feedmenu{position:absolute;top:52px;left:18px;z-index:14;height:29px;display:flex;align-items:center;
-    justify-content:flex-start;background:none;border:none;cursor:pointer;padding:0;}
-  .feedmenu img{width:auto;height:29px;display:block;filter:drop-shadow(0 1px 6px rgba(0,0,0,.55));-webkit-user-select:none;user-select:none;pointer-events:none;}
+    justify-content:flex-start;background:none;border:none;cursor:pointer;padding:0;transform-origin:center;
+    -webkit-tap-highlight-color:transparent;transition:transform .24s var(--ease-spatial);}
+  .feedmenu:active{transform:scale(.9);}
+  .feedmenu[aria-busy="true"]{pointer-events:none;transform:scale(.94);}
+  .feedmenu img{width:auto;height:29px;display:block;filter:drop-shadow(0 1px 6px rgba(0,0,0,.55));-webkit-user-select:none;user-select:none;pointer-events:none;
+    transition:filter .28s ease;}
   .feedmenu svg{width:24px;height:24px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;filter:drop-shadow(0 1px 5px rgba(0,0,0,.55));}
   .feedtopr{position:absolute;top:52px;right:18px;height:29px;z-index:14;display:flex;align-items:center;gap:15px;}
   /* nudged down ~2px so the bottom-heavy inbox optically centers on the "N°" logo */
-  .feedbell{position:relative;border:none;background:none;cursor:pointer;padding:0;color:#fff;display:flex;transform:translateY(2px);filter:drop-shadow(0 1px 8px rgba(0,0,0,.55));}
+  .feedbell{position:relative;border:none;background:none;cursor:pointer;padding:0;color:#fff;display:flex;transform:translateY(2px);filter:drop-shadow(0 1px 8px rgba(0,0,0,.55));
+    transition:color .28s ease,filter .28s ease;}
   .feedbell svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
   .bell-dot{position:absolute;top:-1px;right:-1px;width:7px;height:7px;border-radius:50%;background:#fff;border:1.8px solid #fff;box-shadow:0 0 0 2px var(--bg);}
   .feedbal{display:inline-flex;align-items:center;gap:6px;border:none;background:none;cursor:pointer;padding:0;

@@ -223,6 +223,49 @@ async function main() {
     await releaseMouseDrag(cdp, sessionId, cubeEnd);
     await sleep(500);
 
+    // The N° control moves through three presentations as one continuous zoom. Each state keeps a
+    // visual bridge while the next is built, and bounds the amount of media work done on a phone.
+    await evaluate(cdp, sessionId, `document.getElementById('feed-menu').click()`);
+    await sleep(80);
+    const boardEarly = await readZoomState(cdp, sessionId);
+    assert(boardEarly.mode === 'board', `first N° tap should open the board, got ${boardEarly.mode}`);
+    assert(boardEarly.busy, 'single-to-board transition should report its brief busy state');
+    assert(boardEarly.ghosts === 1, `single-to-board transition should retain one visual bridge, got ${boardEarly.ghosts}`);
+    assert(boardEarly.cards >= 40, `board should already be populated during the transition, got ${boardEarly.cards} cards`);
+    assert(boardEarly.visualCards === boardEarly.cards, `every board card should have a visual fallback, got ${boardEarly.visualCards}/${boardEarly.cards}`);
+    await sleep(500);
+    const board = await readZoomState(cdp, sessionId);
+    assert(!board.busy && board.ghosts === 0, 'single-to-board transition should clean up its temporary state');
+    assert(board.feedDescendants < 450, `board DOM is unexpectedly heavy: ${board.feedDescendants} descendants`);
+    assert(board.mountedVideos <= 4, `too many videos mounted on board: ${board.mountedVideos}`);
+
+    await evaluate(cdp, sessionId, `document.getElementById('feed-menu').click()`);
+    await sleep(100);
+    const galaxyEarly = await readZoomState(cdp, sessionId);
+    assert(galaxyEarly.mode === 'galaxy', `second N° tap should open the galaxy, got ${galaxyEarly.mode}`);
+    assert(galaxyEarly.busy, 'board-to-galaxy transition should report its brief busy state');
+    assert(galaxyEarly.galaxyTiles >= 30 && galaxyEarly.galaxyTiles <= 90, `galaxy buffer should stay bounded, got ${galaxyEarly.galaxyTiles} tiles`);
+    assert(galaxyEarly.loadedGalaxyTiles === galaxyEarly.galaxyTiles, `every galaxy tile should have an immediate visual, got ${galaxyEarly.loadedGalaxyTiles}/${galaxyEarly.galaxyTiles}`);
+    assert(galaxyEarly.visibleUnreadyVideos === 0, `unready galaxy videos must not cover their fallback, got ${galaxyEarly.visibleUnreadyVideos}`);
+    await sleep(500);
+    const galaxy = await readZoomState(cdp, sessionId);
+    assert(!galaxy.busy, 'board-to-galaxy transition should settle');
+    assert(galaxy.mountedVideos <= 6, `too many videos mounted in galaxy: ${galaxy.mountedVideos}`);
+    assert(galaxy.prematureVideoReveals === 0, `warming videos must keep their poster visible, got ${galaxy.prematureVideoReveals}`);
+
+    await evaluate(cdp, sessionId, `document.getElementById('feed-menu').click()`);
+    await sleep(100);
+    const singleEarly = await readZoomState(cdp, sessionId);
+    assert(singleEarly.mode === 'single', `third N° tap should wrap to the single feed, got ${singleEarly.mode}`);
+    assert(singleEarly.busy, 'galaxy-to-single transition should report its brief busy state');
+    assert(singleEarly.galaxyTiles > 0, 'outgoing galaxy should remain as a visual bridge during its fade');
+    await sleep(550);
+    const single = await readZoomState(cdp, sessionId);
+    assert(!single.busy && single.galaxyTiles === 0, 'galaxy-to-single transition should clean up its temporary state');
+    assert(single.hydratedTopics <= 4, `single feed should hydrate only nearby carousels, got ${single.hydratedTopics}`);
+    assert(single.feedDescendants < 950, `single feed DOM is unexpectedly heavy: ${single.feedDescendants} descendants`);
+    assert(single.mountedVideos <= 4, `too many videos mounted after zoom cycle: ${single.mountedVideos}`);
+
     // scrolling the feed reveals more trends without exceeding the video cap
     await cdp.send('Input.dispatchMouseEvent', {
       type: 'mouseWheel',
@@ -309,6 +352,28 @@ async function readState(cdp, sessionId) {
       singleMode: feed.classList.contains('single'),
       carouselIndicators: document.querySelectorAll('[data-dots], .dots').length,
       mountedVideos: document.querySelectorAll('#feed video').length,
+    };
+  })()`);
+}
+
+async function readZoomState(cdp, sessionId) {
+  return evaluate(cdp, sessionId, `(() => {
+    const feed = document.getElementById('feed');
+    const galaxy = document.getElementById('galaxy');
+    const cards = Array.from(feed.querySelectorAll('.fcard'));
+    return {
+      mode: galaxy.classList.contains('on') ? 'galaxy' : (feed.classList.contains('single') ? 'single' : 'board'),
+      busy: document.getElementById('feed-menu').getAttribute('aria-busy') === 'true',
+      ghosts: document.querySelectorAll('.feed-transition-ghost').length,
+      cards: cards.length,
+      visualCards: cards.filter((card) => card.querySelector('img, video, .gc-fallback') || card.style.backgroundImage).length,
+      galaxyTiles: galaxy.querySelectorAll('.gx-tile').length,
+      loadedGalaxyTiles: galaxy.querySelectorAll('.gx-tile.loaded').length,
+      hydratedTopics: feed.querySelectorAll('.topic[data-hydrated="1"]').length,
+      feedDescendants: feed.querySelectorAll('*').length,
+      mountedVideos: document.querySelectorAll('#s-feed video').length,
+      visibleUnreadyVideos: Array.from(document.querySelectorAll('#s-feed video')).filter((video) => video.readyState < 2 && Number(getComputedStyle(video).opacity) > 0).length,
+      prematureVideoReveals: Array.from(document.querySelectorAll('#s-feed video')).filter((video) => video.currentTime < Math.min(1.1, (video.duration || 2.2) * .5) && Number(getComputedStyle(video).opacity) > 0).length,
     };
   })()`);
 }
