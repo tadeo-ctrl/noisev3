@@ -114,4 +114,5 @@ High-discovery areas, especially the main swipe feed, should require both releva
 ## Prototype Interaction And Terminology
 
 - User-authored discussion items are `Posts`. Do not name app surfaces or actions `Conversations`.
+- Profile tabs are ordered `Collections`, `Signals`, `Posts`, `Trends`; `Trends` is the user-facing name for trends created by a curator.
 - Horizontal media and card rails should feel like native app gestures: direct swipe or pointer drag, no visible browser scrollbar, and uninterrupted vertical page scrolling.

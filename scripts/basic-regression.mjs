@@ -32,6 +32,13 @@ assert(css.includes('.dcar,.cs-scroll,#ex-list .ex-car{overflow-x:hidden;touch-a
 assert(!css.match(/#ex-list \.ex-car\{[^}]*overflow-x:auto/) && appJs.includes("list.querySelectorAll('.ex-car').forEach(wireDragRail)"), 'search media rails should use the shared drag controller');
 assert(!html.includes('Conversations') && !html.includes('conversation'), 'product-facing trend discussion copy should use Posts');
 assert(!/convo/i.test(html + appJs + css), 'legacy conversation screen names should use Posts terminology');
+const profileTabs = html.match(/<div class="cprof-tabs" id="pf-tabs">([\s\S]*?)<\/div>/);
+assert(profileTabs, 'profile tabs must exist');
+const profileTabLabels = [...profileTabs[1].matchAll(/<button[^>]*>([^<]+)<span/g)].map(([, label]) => label.trim());
+assert(
+  profileTabLabels.join('|') === 'Collections|Signals|Posts|Trends',
+  'profile tabs must be ordered Collections, Signals, Posts, Trends'
+);
 assert(css.includes('transform-style:preserve-3d'), 'feed carousel should keep a 3D transform context');
 assert(!css.includes('.dots{') && !appJs.includes('data-dots') && !appJs.includes('class="dots"'), 'feed carousel top indicators should not render');
 assert(!appJs.includes('proMode') && !appJs.includes('chartHTML(') && !appJs.includes('function tickCharts'), 'Pro mode and the candlestick feed should be fully removed (single surface)');

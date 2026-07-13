@@ -1619,9 +1619,9 @@
     return {html:html,count:count};
   }
   // profileArchives() deleted — archives are not a concept. Collections only.
-  // Curations = trends this curator created (their leads + anything authored by them).
+  // Trends = trends this curator created (their leads + anything authored by them).
   function createdTrends(handle){return (ORDERS.all||order).filter(function(id){return T[id]&&!/^coll:/.test(id)&&T[id].kind!=='coll'&&T[id].user===handle;});}
-  function profileCurations(handle,p){
+  function profileTrends(handle,p){
     var ids=(p.leads||[]).slice();
     createdTrends(handle).forEach(function(id){if(ids.indexOf(id)<0)ids.push(id);});
     ids=ids.filter(function(id){return T[id];});
@@ -1650,17 +1650,17 @@
     var r=document.getElementById(railId); if(r){releaseMediaIn(r);r.innerHTML=data.html||'';refreshActiveMedia(r);}
     var c=document.getElementById(countId); if(c)c.textContent=data.count;
     var tb=document.querySelector('#pf-tabs [data-pftab-sec="'+secId+'"]');
-    // Curations = trends you created. A user can't create trends, so the tab never applies to
+    // Trends = trends you created. A user can't create trends, so the tab never applies to
     // them. Gated HERE (not in applyRole) because this runs on every profile render and would
     // otherwise put the tab straight back after a reload.
     var curatorOnly=(secId==='pf-sec-curations'&&!IS_CURATOR);
     if(tb)tb.style.display=(!curatorOnly&&(data.count>0||keep))?'':'none';   // empty sections lose their tab
   }
   // Profile content is tabbed - one pane at a time keeps the page quiet.
-  var pfTab='curations';
-  var PF_PANES={curations:'pf-sec-curations',signals:'pf-sec-signals',colls:'pf-sec-colls',posts:'pf-sec-posts'};
+  var pfTab='colls';
+  var PF_PANES={colls:'pf-sec-colls',signals:'pf-sec-signals',posts:'pf-sec-posts',curations:'pf-sec-curations'};
   function pfSetTab(key){
-    if(!PF_PANES[key])key='curations';
+    if(!PF_PANES[key])key='colls';
     var tb=document.querySelector('#pf-tabs [data-pftab="'+key+'"]');
     if(tb&&tb.style.display==='none'){   // tab gone (count 0)? fall to the first visible one
       var vis=Array.prototype.find.call(document.querySelectorAll('#pf-tabs .cprof-tab'),function(b){return b.style.display!=='none';});
@@ -1701,11 +1701,11 @@
     var self=(handle==='@you');
     // Empty sections lose their tab on every profile; your own Collections tab
     // always stays - it carries the "New collection" entry point.
-    setRail('pf-curations','pf-tn-cu','pf-sec-curations',profileCurations(handle,p),false);
-    setRail('pf-signals','pf-tn-s','pf-sec-signals',profileSignalsRail(handle),false);
     setRail('pf-colls','pf-tn-c','pf-sec-colls',profileCollections(handle,p),self);
+    setRail('pf-signals','pf-tn-s','pf-sec-signals',profileSignalsRail(handle),false);
     setRail('pf-uposts','pf-tn-p','pf-sec-posts',profilePostsRail(handle),false);
-    pfSetTab('curations');
+    setRail('pf-curations','pf-tn-cu','pf-sec-curations',profileTrends(handle,p),false);
+    pfSetTab('colls');
   }
   // Every visible @handle must open a real profile. Handles that only exist as trend curators
   // (e.g. @gigafactory) get a deterministic profile synthesized on first tap — previously
@@ -1752,7 +1752,7 @@
     if(actions)actions.innerHTML=self
       ? '<button class="cprof-edit" id="pf-edit">Edit profile</button>'
       : '<button class="cprof-edit cprof-follow'+(isFollowing(handle)?' on':'')+'" id="pf-followbtn">'+(isFollowing(handle)?'Following':'Follow')+'</button>';
-    // Tabbed panes: Curations · Collections · Signals · Posts (one grid at a time).
+    // Tabbed panes: Collections · Signals · Posts · Trends (one grid at a time).
     renderProfileSections(handle,p);
     profileReturn=currentScreenKey();
     show('profile');
@@ -2344,7 +2344,7 @@
     // ＋ : a curator gets the chooser (Trend / Post / Review); a user posts, full stop.
     var fc=document.getElementById('feed-create');
     if(fc)fc.setAttribute('aria-label', IS_CURATOR?'Create':'New post');
-    // Profile: no Curations tab for a user — they can't create trends, so it would always be empty.
+    // Profile: no Trends tab for a user — they can't create trends, so it would always be empty.
     var cu=document.querySelector('#pf-tabs [data-pftab="curations"]');
     if(cu)cu.style.display=IS_CURATOR?'':'none';
     if(!IS_CURATOR){
