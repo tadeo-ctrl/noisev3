@@ -37,6 +37,7 @@ assert(appJs.includes('function refreshActiveMedia(container)'), 'active-screen 
 assert(appJs.includes('function clipAttrs(id,n,thumb,extra)'), 'clip attribute helper is required');
 assert(appJs.includes('function renderCubePosition'), 'feed carousel cube renderer is required');
 assert(appJs.includes('rotateY'), 'feed carousel should use a 3D cube-style transition');
+assert(appJs.includes('Math.min(90,d*90)'), 'feed carousel faces should rotate outward as a convex cube');
 assert(appJs.includes('setPointerCapture'), 'feed carousel should capture horizontal drags after axis lock');
 assert(appJs.includes('if(c.n<2)'), 'single-slide feed tracks should skip horizontal carousel dragging');
 assert(appJs.includes("var feedMode='single'") && appJs.includes('function renderFeedSingle(') && css.includes('.feed.single'), 'Home should default to the immersive one-trend feed');

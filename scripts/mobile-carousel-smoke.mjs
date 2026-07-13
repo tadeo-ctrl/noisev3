@@ -203,6 +203,18 @@ async function main() {
     assert(before.carouselIndicators === 0, `top carousel indicators should not render, got ${before.carouselIndicators}`);
     assert(before.mountedVideos <= 4, `too many videos mounted initially: ${before.mountedVideos}`);
 
+    // A left drag should hinge both panels around their shared edge as the outside of a cube:
+    // the outgoing (left) face rotates negative and the incoming (right) face rotates positive.
+    const cubeEnd = await holdMouseDrag(cdp, sessionId, [[300, 420], [260, 420], [220, 420], [195, 420]]);
+    const cubeMid = await readCubeState(cdp, sessionId);
+    assert(cubeMid.dragging, 'feed carousel should enter its drag state during a horizontal gesture');
+    assert(cubeMid.outgoingRotation < 0, `outgoing cube face should rotate away on the left, got ${cubeMid.outgoingRotation}deg`);
+    assert(cubeMid.incomingRotation > 0, `incoming cube face should rotate in from the right, got ${cubeMid.incomingRotation}deg`);
+    assert(cubeMid.outgoingOrigin === 'right center', `outgoing cube face should hinge on its right edge, got ${cubeMid.outgoingOrigin}`);
+    assert(cubeMid.incomingOrigin === 'left center', `incoming cube face should hinge on its left edge, got ${cubeMid.incomingOrigin}`);
+    await releaseMouseDrag(cdp, sessionId, cubeEnd);
+    await sleep(500);
+
     // scrolling the feed reveals more trends without exceeding the video cap
     await cdp.send('Input.dispatchMouseEvent', {
       type: 'mouseWheel',
@@ -293,6 +305,24 @@ async function readState(cdp, sessionId) {
   })()`);
 }
 
+async function readCubeState(cdp, sessionId) {
+  return evaluate(cdp, sessionId, `(() => {
+    const track = document.querySelector('#feed .topic [data-track]');
+    const slides = Array.from(track.querySelectorAll('.media'));
+    const rotation = (slide) => {
+      const match = slide.style.transform.match(/rotateY\\((-?[\\d.]+)deg\\)/);
+      return match ? Number(match[1]) : 0;
+    };
+    return {
+      dragging: track.classList.contains('dragging'),
+      outgoingRotation: rotation(slides[0]),
+      incomingRotation: rotation(slides[1]),
+      outgoingOrigin: slides[0].style.transformOrigin,
+      incomingOrigin: slides[1].style.transformOrigin,
+    };
+  })()`);
+}
+
 async function readComposerState(cdp, sessionId) {
   return evaluate(cdp, sessionId, `(() => {
     const sheet = document.getElementById('cmpsheet');
@@ -313,7 +343,7 @@ async function readComposerState(cdp, sessionId) {
   })()`);
 }
 
-async function mouseDrag(cdp, sessionId, points) {
+async function holdMouseDrag(cdp, sessionId, points) {
   const [start, ...rest] = points;
   await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: start[0], y: start[1], button: 'none' }, sessionId);
   await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: start[0], y: start[1], button: 'left', buttons: 1, clickCount: 1 }, sessionId);
@@ -321,7 +351,10 @@ async function mouseDrag(cdp, sessionId, points) {
     await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y, button: 'left', buttons: 1 }, sessionId);
     await sleep(40);
   }
-  const end = points[points.length - 1];
+  return points[points.length - 1];
+}
+
+async function releaseMouseDrag(cdp, sessionId, end) {
   await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: end[0], y: end[1], button: 'left', buttons: 0, clickCount: 1 }, sessionId);
 }
 
