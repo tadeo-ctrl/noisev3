@@ -1900,7 +1900,7 @@
     if(prev)prev.hidden=!cmpPic;
     var btn=document.getElementById('cmp-photo-btn'); if(btn)btn.classList.toggle('on',!!cmpPic);}
   function setCmpPost(){var btn=document.getElementById('cmp-post'),ttl=(document.getElementById('cmp-title').value||'').trim();
-    var ready=!!(cmpTrend&&ttl); btn.dataset.mode=ready?'ready':'disabled';btn.style.opacity=ready?'1':'.5';}
+    var ready=!!(cmpTrend&&ttl); btn.dataset.mode=ready?'ready':'disabled';btn.setAttribute('aria-disabled',ready?'false':'true');}
   function cmpRenderOpts(q){q=(q||'').toLowerCase();
     var ids=ORDERS.all.filter(function(id){return !q||T[id].name.toLowerCase().indexOf(q)>=0;});
     var list=document.getElementById('cmp-dd-list'),dd=document.getElementById('cmp-dd');
@@ -3161,7 +3161,8 @@
     renderForecasts(); if(curSignal===curResolve&&currentScreenKey()==='signaldetail')openSignal(curResolve);
     showToast('Resting limit removed');});
   document.querySelectorAll('.diropt').forEach(function(b){b.addEventListener('click',function(){
-    document.querySelectorAll('.diropt').forEach(function(x){x.classList.remove('active');});b.classList.add('active');sel.dir=b.getAttribute('data-dir');out();});});
+    document.querySelectorAll('.diropt').forEach(function(x){x.classList.remove('active');x.setAttribute('aria-pressed','false');});
+    b.classList.add('active');b.setAttribute('aria-pressed','true');sel.dir=b.getAttribute('data-dir');out();});});
   document.querySelectorAll('#lev .chip').forEach(function(c){c.addEventListener('click',function(){
     document.querySelectorAll('#lev .chip').forEach(function(x){x.setAttribute('aria-pressed','false');});c.setAttribute('aria-pressed','true');sel.lev=+c.getAttribute('data-l');out();});});
   document.querySelectorAll('#stake .amt-add').forEach(function(c){c.addEventListener('click',function(){
@@ -3200,16 +3201,15 @@
     document.getElementById('out-cond').textContent=(sel.dir==='rise'?'reaches ':'falls to ')+tg+'°';
     document.getElementById('sheet-bal').textContent=fmt(balance);
     var pl=document.getElementById('place');
-    if(stake<=0){pl.textContent='Signal';pl.dataset.mode='disabled';pl.style.opacity='.5';}
-    else if(stake>balance){pl.textContent='Add credits';pl.dataset.mode='add';pl.style.opacity='1';}
-    else{pl.textContent='Signal';pl.dataset.mode='place';pl.style.opacity='1';}
+    if(stake<=0){pl.textContent='Signal';pl.dataset.mode='disabled';}
+    else if(stake>balance){pl.textContent='Add credits';pl.dataset.mode='add';}
+    else{pl.textContent='Signal';pl.dataset.mode='place';}
+    pl.setAttribute('aria-disabled',pl.dataset.mode==='disabled'?'true':'false');
     document.getElementById('os-entry').textContent=t.deg+'°';
     document.getElementById('os-liq').textContent=sel.lev>1?Math.round(t.deg*(sel.dir==='rise'?(1-0.9/sel.lev):(1+0.9/sel.lev)))+'°':'—';
     document.getElementById('os-cost').textContent=fmt(stake*sel.lev)+' ◇';
     document.getElementById('os-pay').textContent=fmt(stake>0?stake+profit:0)+' ◇';
-    pl.classList.remove('side-rise','side-cool');
     if(pl.dataset.mode==='place'){
-      pl.classList.add(sel.dir==='rise'?'side-rise':'side-cool');
       pl.textContent=(sel.dir==='rise'?'Rise':'Cool')+' '+sel.lev+'× · '+fmt(stake)+' ◇';
     }
     updateTPSL();}
@@ -3305,11 +3305,11 @@
   }
   function updateResolveCTA(){
     var cta=document.getElementById('res-confirm');
-    if(resMode==='market'){cta.textContent='Close at market';cta.removeAttribute('data-disabled');}
+    if(resMode==='market'){cta.textContent='Close at market';cta.removeAttribute('data-disabled');cta.setAttribute('aria-disabled','false');}
     else{var v=parseFloat(document.getElementById('res-limit-in').value);
       var ok=!isNaN(v)&&v>0;
       cta.textContent=ok?'Rest limit @ '+v+'°':'Set a degree';
-      cta.setAttribute('data-disabled',ok?'0':'1');}
+      cta.setAttribute('data-disabled',ok?'0':'1');cta.setAttribute('aria-disabled',ok?'false':'true');}
   }
   function openResolveSheet(idx){
     var p=positions[idx]; if(!p||p.status!=='open')return; var t=T[p.id];

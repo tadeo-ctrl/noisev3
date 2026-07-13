@@ -231,7 +231,7 @@ async function main() {
     assert(boardEarly.mode === 'board', `first N° tap should open the board, got ${boardEarly.mode}`);
     assert(boardEarly.busy, 'single-to-board transition should report its brief busy state');
     assert(boardEarly.ghosts === 1, `single-to-board transition should retain one visual bridge, got ${boardEarly.ghosts}`);
-    assert(boardEarly.cards >= 40, `board should already be populated during the transition, got ${boardEarly.cards} cards`);
+    assert(boardEarly.cards === before.cardCount, `board should already contain the full ${before.cardCount}-trend feed during the transition, got ${boardEarly.cards} cards`);
     assert(boardEarly.visualCards === boardEarly.cards, `every board card should have a visual fallback, got ${boardEarly.visualCards}/${boardEarly.cards}`);
     await sleep(500);
     const board = await readZoomState(cdp, sessionId);
@@ -299,6 +299,41 @@ async function main() {
       assert(dragResult.scrollLeft > 20, `${selector} should move with click-and-drag, got scrollLeft ${dragResult.scrollLeft}`);
       assert(dragResult.activeScreen === 's-detail', `${selector} drag should stay on the detail screen, got ${dragResult.activeScreen}`);
     }
+
+    // The shared primary CTA stays black in both enabled and disabled states; disabled styling
+    // comes from the shared button contract. Selected Rise and Cool use the same black treatment.
+    await evaluate(cdp, sessionId, `document.querySelector('#s-detail [data-forecast]').click()`);
+    await waitFor(cdp, sessionId, `document.getElementById('sheet').classList.contains('open')`, 'Signal sheet');
+    const riseDirection = await readSignalDirectionState(cdp, sessionId);
+    assert(riseDirection.rise.pressed === 'true' && riseDirection.cool.pressed === 'false', 'Rise should be selected when the Signal sheet opens');
+    assert(riseDirection.rise.background === 'rgb(10, 10, 10)', `selected Rise should use the black button background, got ${riseDirection.rise.background}`);
+    assert(riseDirection.rise.border === 'rgb(10, 10, 10)', `selected Rise should use the black button border, got ${riseDirection.rise.border}`);
+    assert(riseDirection.rise.label === 'rgb(255, 255, 255)', `selected Rise label should be white, got ${riseDirection.rise.label}`);
+    assert(riseDirection.rise.detail === 'rgba(255, 255, 255, 0.72)', `selected Rise backing text should be white, got ${riseDirection.rise.detail}`);
+    await evaluate(cdp, sessionId, `document.querySelector('#sheet [data-dir="cool"]').click()`);
+    await sleep(200);
+    const coolDirection = await readSignalDirectionState(cdp, sessionId);
+    assert(coolDirection.cool.pressed === 'true' && coolDirection.rise.pressed === 'false', 'Cool should expose its selected state after a tap');
+    assert(coolDirection.cool.background === 'rgb(10, 10, 10)', `selected Cool should use the black button background, got ${coolDirection.cool.background}`);
+    assert(coolDirection.cool.border === 'rgb(10, 10, 10)', `selected Cool should use the black button border, got ${coolDirection.cool.border}`);
+    assert(coolDirection.cool.label === 'rgb(255, 255, 255)', `selected Cool label should be white, got ${coolDirection.cool.label}`);
+    assert(coolDirection.cool.detail === 'rgba(255, 255, 255, 0.72)', `selected Cool backing text should be white, got ${coolDirection.cool.detail}`);
+    const disabledSignal = await readSignalCtaState(cdp, sessionId);
+    assert(disabledSignal.mode === 'disabled', `empty Signal CTA should be disabled, got ${disabledSignal.mode}`);
+    assert(disabledSignal.ariaDisabled === 'true', 'empty Signal CTA should expose its disabled state');
+    assert(disabledSignal.background === 'rgb(10, 10, 10)', `disabled Signal CTA should stay black, got ${disabledSignal.background}`);
+    assert(disabledSignal.color === 'rgb(255, 255, 255)', `disabled Signal CTA text should stay white, got ${disabledSignal.color}`);
+    assert(disabledSignal.opacity === 0.4, `disabled Signal CTA should use shared 40% opacity, got ${disabledSignal.opacity}`);
+    assert(disabledSignal.borderRadius === disabledSignal.pillRadius, `Signal sheet CTA should use the shared pill radius, got ${disabledSignal.borderRadius} instead of ${disabledSignal.pillRadius}`);
+    await evaluate(cdp, sessionId, `(() => { const input=document.getElementById('amt'); input.value='50'; input.dispatchEvent(new Event('input',{bubbles:true})); })()`);
+    await sleep(200);
+    const enabledSignal = await readSignalCtaState(cdp, sessionId);
+    assert(enabledSignal.mode === 'place', `funded Signal CTA should be enabled, got ${enabledSignal.mode}`);
+    assert(enabledSignal.ariaDisabled === 'false', 'funded Signal CTA should expose its enabled state');
+    assert(enabledSignal.background === 'rgb(10, 10, 10)', `enabled Signal CTA should stay black, got ${enabledSignal.background}`);
+    assert(enabledSignal.opacity === 1, `enabled Signal CTA should be fully opaque, got ${enabledSignal.opacity}`);
+    await evaluate(cdp, sessionId, `document.getElementById('scrim').click()`);
+    await waitFor(cdp, sessionId, `!document.getElementById('sheet').classList.contains('open')`, 'Signal sheet close');
     await evaluate(cdp, sessionId, `document.getElementById('det-back').click()`);
     await waitFor(cdp, sessionId, `document.getElementById('s-feed').classList.contains('active')`, 'feed return from detail');
 
@@ -333,6 +368,9 @@ async function main() {
     assert(composer.previewHeight > composer.previewWidth, `trend picker preview should use vertical post aspect, got ${composer.previewWidth}x${composer.previewHeight}`);
     assert(composer.previewVideos > 0, 'trend picker should mount at least one visible video preview');
     assert(composer.mountedVideos <= 4, `too many videos mounted in compose picker: ${composer.mountedVideos}`);
+    assert(composer.postMode === 'disabled' && composer.postAriaDisabled === 'true', 'incomplete composer CTA should expose its shared disabled state');
+    assert(composer.postBackground === 'rgb(10, 10, 10)', `disabled composer CTA should stay black, got ${composer.postBackground}`);
+    assert(composer.postOpacity === 0.4, `disabled composer CTA should use shared 40% opacity, got ${composer.postOpacity}`);
 
     const seriousLogs = cdp.events.filter((event) => (
       event.method === 'Runtime.exceptionThrown' ||
@@ -463,6 +501,22 @@ async function readDetailRailState(cdp, sessionId) {
   })()`);
 }
 
+async function readSignalCtaState(cdp, sessionId) {
+  return evaluate(cdp, sessionId, `(() => {
+    const cta = document.getElementById('place');
+    const style = getComputedStyle(cta);
+    return {
+      mode: cta.dataset.mode,
+      ariaDisabled: cta.getAttribute('aria-disabled'),
+      background: style.backgroundColor,
+      color: style.color,
+      opacity: Number(style.opacity),
+      borderRadius: style.borderRadius,
+      pillRadius: getComputedStyle(document.documentElement).getPropertyValue('--r-pill').trim(),
+    };
+  })()`);
+}
+
 async function dragRail(cdp, sessionId, selector) {
   const point = await evaluate(cdp, sessionId, `(async () => {
     const el = document.querySelector(${JSON.stringify(selector)});
@@ -489,11 +543,30 @@ async function dragRail(cdp, sessionId, selector) {
   }))()`);
 }
 
+async function readSignalDirectionState(cdp, sessionId) {
+  return evaluate(cdp, sessionId, `(() => {
+    const state = {};
+    document.querySelectorAll('#sheet [data-dir]').forEach((button) => {
+      const style = getComputedStyle(button);
+      state[button.dataset.dir] = {
+        pressed: button.getAttribute('aria-pressed'),
+        background: style.backgroundColor,
+        border: style.borderColor,
+        label: getComputedStyle(button.querySelector('b')).color,
+        detail: getComputedStyle(button.querySelector('small')).color,
+      };
+    });
+    return state;
+  })()`);
+}
+
 async function readComposerState(cdp, sessionId) {
   return evaluate(cdp, sessionId, `(() => {
     const sheet = document.getElementById('cmpsheet');
     const picker = document.getElementById('cmp-dd');
     const preview = picker.querySelector('.cmp-opt-media[data-vsrc]');
+    const post = document.getElementById('cmp-post');
+    const postStyle = getComputedStyle(post);
     const rect = preview.getBoundingClientRect();
     return {
       sheetOpen: sheet.classList.contains('open'),
@@ -505,6 +578,10 @@ async function readComposerState(cdp, sessionId) {
       previewHeight: Math.round(rect.height),
       previewVideos: picker.querySelectorAll('.cmp-opt-media video').length,
       mountedVideos: document.querySelectorAll('video').length,
+      postMode: post.dataset.mode,
+      postAriaDisabled: post.getAttribute('aria-disabled'),
+      postBackground: postStyle.backgroundColor,
+      postOpacity: Number(postStyle.opacity),
     };
   })()`);
 }

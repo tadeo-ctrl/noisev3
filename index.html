@@ -540,8 +540,8 @@
       <div class="sheet-h">Signal <span id="sheet-name">Humanoid Robots</span></div>
       <div class="balrow"><span>Balance <b id="sheet-bal">500</b> credits</span><button class="baladd" id="sheet-add">+ Add</button></div>
       <div class="dirseg">
-        <button class="diropt rise active" data-dir="rise"><b>▲ Rise</b><small id="m-rise">64% backing</small></button>
-        <button class="diropt cool" data-dir="cool"><b>▼ Cool</b><small id="m-cool">36% backing</small></button>
+        <button class="diropt rise active" data-dir="rise" aria-pressed="true"><b>▲ Rise</b><small id="m-rise">64% backing</small></button>
+        <button class="diropt cool" data-dir="cool" aria-pressed="false"><b>▼ Cool</b><small id="m-cool">36% backing</small></button>
       </div>
       <div id="levwrap" style="display:none;">
         <div class="seg-h">Leverage</div>
@@ -583,7 +583,7 @@
         <div><label>Size</label><b id="os-cost">0</b></div>
         <div><label>Est. payout</label><b id="os-pay">0</b></div>
       </div>
-      <button class="cta-place" id="place" data-mode="place">Signal</button>
+      <button class="cta-place" id="place" data-mode="disabled" aria-disabled="true">Signal</button>
     </div>
     <div class="sheet glass" id="addsheet" role="dialog" aria-modal="true" aria-label="Add credits">
       <div class="grab"></div>
@@ -624,7 +624,7 @@
         </div>
         <button class="res-cancel" id="res-limit-clear" hidden>Remove resting limit</button>
       </div>
-      <button class="cta-place" id="res-confirm">Close at market</button>
+      <button class="cta-place" id="res-confirm" aria-disabled="false">Close at market</button>
     </div>
 
     <!-- compose post sheet -->
@@ -642,7 +642,7 @@
         <input class="cmp-title" id="cmp-title" type="text" maxlength="60" placeholder="Title">
         <textarea class="cmp-text" id="cmp-text" placeholder="Add a description…"></textarea>
         <div class="cmp-actions">
-          <button class="cta-place cmp-post-cta" id="cmp-post" data-mode="disabled">Post</button>
+          <button class="cta-place cmp-post-cta" id="cmp-post" data-mode="disabled" aria-disabled="true">Post</button>
         </div>
       </div>
     </div>

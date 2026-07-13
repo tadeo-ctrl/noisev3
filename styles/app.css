@@ -673,12 +673,15 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 .add-custom input::-webkit-outer-spin-button,.add-custom input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 .dirseg{display:flex;gap:10px;margin-bottom:22px;}
 .diropt{flex:1;cursor:pointer;border-radius:var(--r-md);padding:18px;text-align:center;color:var(--paper);
-  background:rgba(0,0,0,.05);border:1.5px solid rgba(0,0,0,.12);transition:all .18s;font-family:inherit;}
+  background:rgba(0,0,0,.05);border:1.5px solid rgba(0,0,0,.12);
+  transition:background-color var(--t),border-color var(--t),color var(--t),transform var(--t-fast);font-family:inherit;}
+.diropt:active{transform:scale(.985);}
 .diropt b{display:block;font-size:19px;font-weight:700;}
 .diropt small{font-size:11.5px;color:var(--muted);}
-.diropt.rise.active{border-color:var(--up);background:rgba(84,217,166,.16);}
-.diropt.cool.active{border-color:var(--down);background:rgba(224,99,90,.16);}
 .diropt.rise b{color:var(--rise);} .diropt.cool b{color:var(--cool);}
+.diropt.active{border-color:var(--paper);background:var(--paper);color:#FFFFFF;}
+.diropt.active b{color:#FFFFFF;}
+.diropt.active small{color:rgba(255,255,255,.72);}
 /* resolve sheet: market vs limit */
 .res-seg{display:flex;gap:10px;margin-bottom:16px;}
 .res-opt{flex:1;cursor:pointer;border-radius:var(--r-md);padding:14px 12px;text-align:left;color:var(--paper);background:rgba(0,0,0,.05);border:1.5px solid rgba(0,0,0,.12);transition:all .18s;font-family:inherit;}
@@ -692,7 +695,6 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 .res-row b{font-weight:800;font-variant-numeric:tabular-nums;}
 .res-row b.up{color:var(--up);} .res-row b.dn{color:var(--down);}
 .res-cancel{margin-top:12px;width:100%;background:none;border:0;color:var(--down);font:inherit;font-weight:700;font-size:13px;cursor:pointer;padding:4px;}
-#res-confirm[data-disabled="1"]{opacity:.5;}
 .pos-limit{color:var(--paper);font-weight:700;}
 .seg-h{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 2px 9px;}
 .chips{display:flex;gap:9px;margin-bottom:14px;}
@@ -725,8 +727,11 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
 .outcome{display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;color:rgba(0,0,0,.8);margin-bottom:18px;}
 .outcome b{color:var(--good);font-variant-numeric:tabular-nums;font-size:17px;}
 .cta-place{width:100%;border:none;cursor:pointer;background:var(--paper);color:#FFFFFF;font-family:inherit;font-weight:700;font-size:16px;
-  padding:16px;border-radius:var(--r-md);transition:transform .15s;}
+  padding:16px;border-radius:var(--r-md);transition:transform .15s,opacity .15s;}
 .cta-place:active{transform:scale(.985);}
+.cta-place[data-mode="disabled"],.cta-place[data-disabled="1"]{opacity:.4;cursor:default;pointer-events:none;}
+.cta-place[data-mode="disabled"]:active,.cta-place[data-disabled="1"]:active{transform:none;}
+#sheet .cta-place{border-radius:var(--r-pill);}
 
 /* ===== LISTS (saved / forecasts / taste) ===== */
 .bgglow{position:absolute;inset:0;pointer-events:none;
@@ -1401,8 +1406,6 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
   .ord-sum>div{display:flex;flex-direction:column;gap:3px;min-width:0;}
   .ord-sum label{font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);}
   .ord-sum b{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--paper);white-space:nowrap;}
-  .cta-place.side-rise{background:var(--up);color:#FFFFFF;}
-  .cta-place.side-cool{background:var(--down);color:#fff;}
   .baladd{margin-left:auto;background:rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.18);color:var(--rel);
     font-family:inherit;font-weight:700;font-size:12px;padding:6px 12px;border-radius:var(--r-sm);cursor:pointer;}
   /* Polymarket-style to-win: stake left, win right */
@@ -1678,8 +1681,6 @@ body{font-family:"Ease Standard","Inter",system-ui,sans-serif;background:#FFFFFF
     .topic{content-visibility:auto;contain-intrinsic-size:auto 100dvh;}
     .fc-round{-webkit-backdrop-filter:none;backdrop-filter:none;}
   }
-/* In-sheet Signal confirm CTA = brand yellow in its non-directional state (Rise/Cool still turn it green/red) */
-#sheet .cta-place:not(.side-rise):not(.side-cool){background:var(--yellow);color:#000;}
 /* Hide the trend-page Signal button (and its glow) while a sheet is open, so it can't bleed through */
 .forecast-bar.under-sheet{opacity:0;visibility:hidden;transition:opacity .12s ease;}
 /* "+ Add" credits pill: white label on the subtle orange pill */
