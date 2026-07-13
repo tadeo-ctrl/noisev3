@@ -66,6 +66,14 @@ assert(appJs.includes('function previewClipId(id)') && appJs.includes('class="cm
 assert(!html.includes('LEEME_EDDY') && !dataJs.includes('LEEME_EDDY') && !appJs.includes('LEEME_EDDY'), 'personal handoff filename should not be referenced');
 assert(!appJs.match(/querySelectorAll\('\[data-vsrc\]'\)\.forEach\(function\(el\)\{mountVid\(el\);/), 'avoid eager mounting entire containers');
 assert(!dataJs.includes('document.'), 'data.js should stay free of DOM work');
+assert(fs.existsSync('media/profile/you.png'), 'the seeded @you avatar image must exist');
+assert(dataJs.includes('img:"media/profile/you.png"'), 'the @you profile must reference the seeded avatar image');
+assert(dataJs.includes('"@you":{name:"Tadeo"'), 'the @you profile must own its display name in profile data');
+assert(html.includes('id="edit-avbtn"') && html.includes('id="edit-avatar-input"'), 'Edit profile must expose the clickable avatar upload control');
+assert(!html.includes('edit-avbadge') && !html.includes('edit-avhint') && !html.includes('>Upload photo<'), 'the avatar upload control must not render a badge or helper label');
+assert(appJs.includes('function avatarStyle(') && appJs.includes('function paintAvatar('), 'all avatar surfaces should share image-or-color rendering');
+assert(appJs.includes('function uploadAvatar(') && appJs.includes('paintOwnAvatarChrome()'), 'avatar uploads must update shared account chrome');
+assert(appJs.includes("value=p.name||'Tadeo'"), 'avatar-only profile edits must preserve the default display name');
 
 const clipManifest = dataJs.match(/var CLIPS=\{([^}]+)\}/);
 assert(clipManifest, 'CLIPS manifest is required');
